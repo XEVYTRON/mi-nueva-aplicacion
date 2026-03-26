@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi App Offline</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#317EFB">
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 10px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background: #317EFB; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>¡Mi Aplicación Funciona!</h1>
+        <p>Si ves esto, tu PWA está cargada.</p>
+        <p><strong>Pruébame:</strong> Apaga el Wi-Fi y recarga la página.</p>
+        <button onclick="alert('¡Sigo funcionando sin internet!')">Probar botón</button>
+    </div>
+
+    <script>
+        // Este código registra el Service Worker solo
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log("Service Worker Activo"))
+            .catch(err => console.log("Error:", err));
+        }
+    </script>
+</body>
+</html>

@@ -3,201 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calculadora Puntos Excel</title>
+    <title>Calculadora Puntos Fiel Excel</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4CAF50">
+    <meta name="theme-color" content="#E91E63">
     <style>
-        :root { --primary: #4CAF50; --bg: #f0f2f5; --card: #fff; }
-        body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 70px; }
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 10; }
-        .card { background: var(--card); margin: 10px; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .btn { border: none; padding: 12px; border-radius: 5px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .btn-main { background: var(--primary); color: white; }
-        .btn-add { background: #2196F3; color: white; }
-        .btn-edit { background: #FF9800; color: white; }
-        .btn-del { background: #f44336; color: white; width: auto; padding: 5px 10px; }
+        :root { --primary: #E91E63; --bg: #f8f9fa; --card: #fff; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
+        .card { background: var(--card); margin: 12px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         
-        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; height: 60px; }
-        .tab { flex: 1; text-align: center; padding: 10px; font-size: 12px; color: #666; cursor: pointer; }
-        .tab.active { color: var(--primary); font-weight: bold; }
+        label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 4px; font-weight: 600; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
         
-        .view { display: none; }
+        .result-box { text-align: center; padding: 10px; border: 2px solid var(--primary); border-radius: 10px; margin-bottom: 15px; }
+        .result-puntos { font-size: 2.5rem; font-weight: bold; color: var(--primary); }
+        
+        .btn { border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-add { background: #4CAF50; color: white; width: auto; padding: 8px 12px; }
+        .btn-edit { background: #2196F3; color: white; width: auto; padding: 8px 12px; }
+        .btn-reset { background: #607D8B; color: white; margin-top: 10px; font-size: 0.8rem; }
+        
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; height: 65px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; color: #888; }
+        .tab.active { color: var(--primary); }
+        
+        .view { display: none; padding: 10px; }
         .view.active { display: block; }
         
-        .puntos-circle { width: 80px; height: 80px; border: 4px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 10px auto; color: var(--primary); }
-        .item-alimento { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .food-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .food-info b { display: block; font-size: 1rem; }
+        .food-info span { font-size: 0.8rem; color: #777; }
+        
+        .daily-stat { font-size: 3rem; font-weight: bold; text-align: center; display: block; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-<header id="header-title">Calculadora</header>
+<header id="app-title">Calculadora de Puntos</header>
 
 <div id="view-calc" class="view active">
     <div class="card">
         <label>Nombre del Alimento</label>
-        <input type="text" id="name" placeholder="Ej: Pollo">
-        <label>Gramos a calcular</label>
-        <input type="number" id="grams" value="100" oninput="runCalc()">
-        <label>Proteínas (por 100g)</label>
-        <input type="number" id="prot" oninput="runCalc()">
-        <label>Grasas (por 100g)</label>
-        <input type="number" id="fat" oninput="runCalc()">
-        <label>Calorías (por 100g)</label>
-        <input type="number" id="cal" oninput="runCalc()">
+        <input type="text" id="name" placeholder="Ej: Arroz">
         
-        <div class="puntos-circle" id="res-puntos">0</div>
+        <label>Gramos Porción (la cantidad que comerás)</label>
+        <input type="number" id="grams" placeholder="Ej: 150" oninput="calcular()">
+        
+        <label>Calorías (por cada 100g)</label>
+        <input type="number" id="cal" placeholder="Ej: 350" oninput="calcular()">
+        
+        <label>Grasas (por cada 100g)</label>
+        <input type="number" id="fat" placeholder="Ej: 1.2" oninput="calcular()">
+        
+        <label>Proteínas (por cada 100g)</label>
+        <input type="number" id="prot" placeholder="Ej: 7.5" oninput="calcular()">
+        
+        <div class="result-box">
+            <span class="result-puntos" id="res-pts">0</span>
+            <div style="font-size: 0.8rem; color: var(--primary)">PUNTOS CALCULADOS</div>
+        </div>
+
         <input type="hidden" id="edit-id">
-        <button class="btn btn-main" id="btn-save" onclick="saveFood()">💾 Guardar Alimento</button>
+        <button class="btn btn-save" id="btn-save" onclick="guardar()">💾 Guardar en Mis Alimentos</button>
     </div>
 </div>
 
 <div id="view-list" class="view">
-    <div class="card">
-        <div id="food-list"></div>
-    </div>
+    <div class="card" id="food-list">
+        </div>
 </div>
 
 <div id="view-daily" class="view">
     <div class="card" style="text-align: center;">
-        <h2>Puntos Hoy</h2>
-        <div class="puntos-circle" id="daily-rem">22</div>
-        <p>Restantes de 22</p>
-        <button class="btn btn-del" onclick="resetDay()">Resetear Día</button>
+        <label>PUNTOS RESTANTES HOY</label>
+        <span class="daily-stat" id="daily-rem">22</span>
+        <p style="color: #888">Meta diaria: 22 puntos</p>
+        <button class="btn btn-reset" onclick="resetearDia()">Reiniciar Contador Diario</button>
     </div>
-    <div class="card" id="daily-log"></div>
+    <div class="card">
+        <label>LO QUE HAS COMIDO HOY:</label>
+        <div id="daily-log"></div>
+    </div>
 </div>
 
 <nav class="tab-bar">
-    <div class="tab active" onclick="showV('calc')">🧮 Calc</div>
-    <div class="tab" onclick="showV('list')">💾 Mis Alimentos</div>
-    <div class="tab" onclick="showV('daily')">📅 Hoy</div>
+    <div class="tab active" onclick="navegar('calc')"><span>🧮</span>Calc</div>
+    <div class="tab" onclick="navegar('list')"><span>📖</span>Lista</div>
+    <div class="tab" onclick="navegar('daily')"><span>🍴</span>Hoy</div>
 </nav>
 
 <script>
-    let foods = JSON.parse(localStorage.getItem('myFoods') || '[]');
-    let dailyPoints = JSON.parse(localStorage.getItem('dailyLog') || '{"total":22, "used":0, "items":[]}');
+    // Memoria del teléfono
+    let alimentos = JSON.parse(localStorage.getItem('alimentos_puntos') || '[]');
+    let hoy = JSON.parse(localStorage.getItem('consumo_dia') || '{"usados":0, "lista":[]}');
 
-    // LA FÓRMULA DEL EXCEL
-    function runCalc() {
+    // LA FÓRMULA DEL EXCEL (Exacta)
+    function calcular() {
         const g = parseFloat(document.getElementById('grams').value) || 0;
-        const p = parseFloat(document.getElementById('prot').value) || 0;
-        const f = parseFloat(document.getElementById('fat').value) || 0;
         const c = parseFloat(document.getElementById('cal').value) || 0;
+        const f = parseFloat(document.getElementById('fat').value) || 0;
+        const p = parseFloat(document.getElementById('prot').value) || 0;
 
-        // Fórmula: ((P/11) + (F/9) + (C/70)) * (Gramos/100)
-        let res = ((p/11) + (f/9) + (c/70)) * (g/100);
-        document.getElementById('res-puntos').innerText = Math.round(res) || 0;
+        // Fórmula: ((Cal/70) + (Grasa/9) + (Prot/11)) * (GramosPorcion/100)
+        let total = ((c/70) + (f/9) + (p/11)) * (g/100);
+        document.getElementById('res-pts').innerText = Math.round(total) || 0;
     }
 
-    function saveFood() {
-        const name = document.getElementById('name').value || 'Sin nombre';
+    function guardar() {
         const id = document.getElementById('edit-id').value;
-        const newFood = {
+        const nuevo = {
             id: id ? parseInt(id) : Date.now(),
-            name: name,
+            nombre: document.getElementById('name').value || 'Alimento',
             g: document.getElementById('grams').value,
-            p: document.getElementById('prot').value,
-            f: document.getElementById('fat').value,
             c: document.getElementById('cal').value,
-            pts: document.getElementById('res-puntos').innerText
+            f: document.getElementById('fat').value,
+            p: document.getElementById('prot').value,
+            pts: document.getElementById('res-pts').innerText
         };
 
         if(id) {
-            foods = foods.map(f => f.id == id ? newFood : f);
+            alimentos = alimentos.map(a => a.id == id ? nuevo : a);
         } else {
-            foods.push(newFood);
+            alimentos.push(nuevo);
         }
 
-        localStorage.setItem('myFoods', JSON.stringify(foods));
-        alert("¡Guardado!");
-        clearForm();
-        showV('list');
+        localStorage.setItem('alimentos_puntos', JSON.stringify(alimentos));
+        alert("¡Alimento guardado!");
+        limpiarYIrALista();
     }
 
-    function renderList() {
-        const container = document.getElementById('food-list');
-        container.innerHTML = foods.length ? '' : 'No hay alimentos guardados.';
-        foods.forEach(f => {
-            container.innerHTML += `
-                <div class="item-alimento">
-                    <div>
-                        <strong>${f.name}</strong><br>
-                        <small>${f.pts} pts (${f.g}g)</small>
+    function renderLista() {
+        const div = document.getElementById('food-list');
+        div.innerHTML = alimentos.length ? '' : '<p style="text-align:center">No hay alimentos. Usa la calculadora.</p>';
+        alimentos.forEach(a => {
+            div.innerHTML += `
+                <div class="food-item">
+                    <div class="food-info">
+                        <b>${a.nombre}</b>
+                        <span>${a.pts} pts por cada ${a.g}g</span>
                     </div>
                     <div>
-                        <button class="btn btn-edit" style="width:auto" onclick="editF(${f.id})">✏️</button>
-                        <button class="btn btn-add" style="width:auto" onclick="eat(${f.id})">➕</button>
+                        <button class="btn btn-edit" onclick="cargarEdicion(${a.id})">✏️</button>
+                        <button class="btn btn-add" onclick="comer(${a.id})">➕</button>
                     </div>
                 </div>`;
         });
     }
 
-    function editF(id) {
-        const f = foods.find(x => x.id == id);
-        document.getElementById('name').value = f.name;
-        document.getElementById('grams').value = f.g;
-        document.getElementById('prot').value = f.p;
-        document.getElementById('fat').value = f.f;
-        document.getElementById('cal').value = f.c;
-        document.getElementById('edit-id').value = f.id;
+    function cargarEdicion(id) {
+        const a = alimentos.find(x => x.id == id);
+        document.getElementById('name').value = a.nombre;
+        document.getElementById('grams').value = a.g;
+        document.getElementById('cal').value = a.c;
+        document.getElementById('fat').value = a.f;
+        document.getElementById('prot').value = a.p;
+        document.getElementById('edit-id').value = a.id;
         document.getElementById('btn-save').innerText = "✅ Actualizar Alimento";
-        runCalc();
-        showV('calc');
+        calcular();
+        navegar('calc');
     }
 
-    function eat(id) {
-        const f = foods.find(x => x.id == id);
-        const qty = prompt(`¿Cuántos gramos de ${f.name} has comido?`, f.g);
-        if(qty) {
-            // Recalcular puntos para la cantidad comida
-            let ptsComidos = Math.round(((f.p/11) + (f.f/9) + (f.c/70)) * (qty/100));
-            dailyPoints.used += ptsComidos;
-            dailyPoints.items.push({name: f.name, pts: ptsComidos, qty: qty});
-            localStorage.setItem('dailyLog', JSON.stringify(dailyPoints));
-            alert(`Añadido: ${ptsComidos} puntos`);
-            showV('daily');
+    function comer(id) {
+        const a = alimentos.find(x => x.id == id);
+        const cantidad = prompt(`¿Cuántos gramos de "${a.nombre}" vas a comer?`, a.g);
+        if(cantidad) {
+            // Recalcular puntos para la cantidad real que vas a ingerir
+            let ptsComida = Math.round(((a.c/70) + (a.f/9) + (a.p/11)) * (cantidad/100));
+            hoy.usados += ptsComida;
+            hoy.lista.unshift({nombre: a.nombre, pts: ptsComida, g: cantidad});
+            localStorage.setItem('consumo_dia', JSON.stringify(hoy));
+            alert(`Añadido: ${ptsComida} puntos`);
+            navegar('daily');
         }
     }
 
-    function renderDaily() {
-        document.getElementById('daily-rem').innerText = 22 - dailyPoints.used;
+    function renderHoy() {
+        const resta = 22 - hoy.usados;
+        const el = document.getElementById('daily-rem');
+        el.innerText = resta;
+        el.style.color = resta < 0 ? 'red' : 'inherit';
+        
         const log = document.getElementById('daily-log');
-        log.innerHTML = '<h3>Consumo de hoy:</h3>';
-        dailyPoints.items.forEach(i => {
-            log.innerHTML += `<div class="item-alimento"><span>${i.name} (${i.qty}g)</span> <b>${i.pts} pts</b></div>`;
+        log.innerHTML = '';
+        hoy.lista.forEach(item => {
+            log.innerHTML += `<div class="food-item"><span>${item.nombre} (${item.g}g)</span> <b>${item.pts} pts</b></div>`;
         });
     }
 
-    function showV(v) {
+    function navegar(v) {
         document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
         document.getElementById('view-'+v).classList.add('active');
-        document.getElementById('header-title').innerText = v.toUpperCase();
-        if(v == 'list') renderList();
-        if(v == 'daily') renderDaily();
+        if(v == 'list') renderLista();
+        if(v == 'daily') renderHoy();
     }
 
-    function clearForm() {
+    function limpiarYIrALista() {
         document.getElementById('name').value = '';
         document.getElementById('edit-id').value = '';
-        document.getElementById('btn-save').innerText = "💾 Guardar Alimento";
-        runCalc();
+        document.getElementById('btn-save').innerText = "💾 Guardar en Mis Alimentos";
+        calcular();
+        navegar('list');
     }
 
-    function resetDay() {
-        if(confirm("¿Borrar puntos de hoy?")) {
-            dailyPoints.used = 0;
-            dailyPoints.items = [];
-            localStorage.setItem('dailyLog', JSON.stringify(dailyPoints));
-            renderDaily();
+    function resetearDia() {
+        if(confirm("¿Quieres poner a cero los puntos de hoy?")) {
+            hoy = {usados: 0, lista: []};
+            localStorage.setItem('consumo_dia', JSON.stringify(hoy));
+            renderHoy();
         }
     }
 
-    // Registro de Service Worker para Offline
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
+    // Activar Service Worker
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 </script>
 </body>
 </html>

@@ -1,38 +1,16 @@
-const CACHE_NAME = 'puntos-v1';
-// Archivos necesarios para que la app funcione offline
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  // Si añadieras imágenes locales o CSS externo, irían aquí
-];
+const CACHE_NAME = 'puntos-excel-v4';
+const assets = ['./', './index.html', './manifest.json'];
 
-// Instalación: Guarda los archivos estáticos en caché
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS_TO_CACHE))
-      .then(() => self.skipWaiting()) // Fuerza la activación inmediata
-  );
+self.addEventListener('install', e => {
+    e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(assets)));
 });
 
-// Activación: Limpia cachés antiguas
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(key => {
-        if (key !== CACHE_NAME) return caches.delete(key);
-      })
-    )).then(() => self.clients.claim()) // Toma control de las pestañas abiertas
-  );
+self.addEventListener('activate', e => {
+    e.waitUntil(caches.keys().then(keys => Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+    )));
 });
 
-// Intercepción de peticiones: Sirve desde caché si está offline
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        return cachedResponse || fetch(event.request);
-      })
-  );
+self.addEventListener('fetch', e => {
+    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });

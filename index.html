@@ -2,30 +2,587 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi App Offline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculadora de Puntos Offline</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#317EFB">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
-        .card { background: white; padding: 20px; border-radius: 10px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button { background: #317EFB; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        /* CSS TOTALMENTE NUEVO PARA ESTILO APP MÓVIL */
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --accent: #FF5722;
+            --bg: #f0f2f5;
+            --text: #333;
+            --text-secondary: #757575;
+            --card-bg: #fff;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; padding: 0; background-color: var(--bg); color: var(--text); 
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        /* Navegación por Pestañas (Abajo) */
+        .tab-bar {
+            display: flex; background: var(--card-bg); border-top: 1px solid #ddd;
+            position: fixed; bottom: 0; width: 100%; height: 60px; z-index: 1000;
+        }
+        .tab-btn {
+            flex: 1; border: none; background: none; color: var(--text-secondary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .tab-btn.active { color: var(--primary); font-weight: bold; }
+        .tab-btn-icon { font-size: 20px; margin-bottom: 2px; }
+
+        /* Contenedor de Vistas */
+        .view-container { flex: 1; overflow-y: auto; padding-bottom: 70px; display: none; }
+        .view-container.active { display: block; }
+
+        /* Estilos Generales */
+        header { 
+            background: var(--primary); color: white; padding: 15px; 
+            text-align: center; position: sticky; top: 0; z-index: 999; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 1.2rem; }
+        
+        .card { 
+            background: var(--card-bg); margin: 15px; padding: 20px; 
+            border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* Formularios e Inputs */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--text-secondary); font-size: 0.9rem;}
+        input[type="number"], input[type="text"] {
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;
+            box-sizing: border-box; font-size: 1rem;
+        }
+        
+        .row { display: flex; gap: 10px; }
+        .col { flex: 1; }
+
+        /* Botones */
+        .btn {
+            border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer;
+            font-weight: bold; font-size: 1rem; transition: 0.2s; width: 100%;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { background: var(--primary-dark); }
+        .btn-accent { background: var(--accent); color: white; margin-top: 10px;}
+        .btn-danger { background: #ff4444; color: white; padding: 8px 12px; font-size: 0.8rem;}
+        .btn-sm { padding: 8px 12px; font-size: 0.8rem; width: auto;}
+        .btn-outline { background: none; border: 1px solid var(--primary); color: var(--primary); }
+
+        /* Resultado del Cálculo */
+        #puntos-result {
+            font-size: 3rem; font-weight: bold; color: var(--primary); text-align: center;
+            margin: 20px 0; border: 2px solid var(--primary); border-radius: 50%;
+            width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;
+            margin-left: auto; margin-right: auto; box-shadow: 0 0 15px rgba(76,175,80,0.2);
+        }
+
+        /* Lista de Alimentos */
+        .alimento-item {
+            border-bottom: 1px solid #eee; padding: 15px 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .alimento-item:last-child { border-bottom: none; }
+        .alimento-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .alimento-info p { margin: 0; color: var(--text-secondary); font-size: 0.8rem; }
+        .alimento-actions { display: flex; gap: 5px; flex-direction: column; align-items: flex-end;}
+
+        /* Zona Puntos Diarios */
+        .puntos-header { text-align: center; margin-bottom: 20px; }
+        .puntos-remaining { font-size: 3.5rem; font-weight: bold; color: var(--text); }
+        .puntos-total { color: var(--text-secondary); font-size: 1.2rem; margin-top: -10px;}
+        .over-limit { color: #ff4444 !important; }
+
+        /* Historial */
+        .historial-dia { margin-bottom: 20px; }
+        .historial-date { font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>¡Mi Aplicación Funciona!</h1>
-        <p>Si ves esto, tu PWA está cargada.</p>
-        <p><strong>Pruébame:</strong> Apaga el Wi-Fi y recarga la página.</p>
-        <button onclick="alert('¡Sigo funcionando sin internet!')">Probar botón</button>
+
+    <div id="view-calc" class="view-container active">
+        <header><h1>Calculadora de Puntos</h1></header>
+        <div class="card">
+            <div id="calc-form-zone">
+                <div class="form-group">
+                    <label>Nombre del Alimento (opcional para guardar)</label>
+                    <input type="text" id="calc-name" placeholder="Ej: Yogur Griego">
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Gramos Totales</label>
+                            <input type="number" id="calc-grams" placeholder="100" oninput="calcularPuntos()">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Proteínas (g/100g)</label>
+                            <input type="number" id="calc-prot" placeholder="3.5" oninput="calcularPuntos()">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Grasas (g/100g)</label>
+                            <input type="number" id="calc-fat" placeholder="10.2" oninput="calcularPuntos()">
+                        </div>
+                    </div>
+                    <div class="col">
+                        </div>
+                </div>
+            </div>
+
+            <div id="puntos-result">0</div>
+            <p style="text-align:center; color:var(--text-secondary); font-size:0.8rem; margin-top:-10px;">Puntos Totales</p>
+            
+            <input type="hidden" id="editing-id" value="">
+            <button class="btn btn-primary" id="btn-save" onclick="guardarAlimento()" disabled>💾 Guardar Alimento</button>
+            <button class="btn btn-outline" id="btn-cancel-edit" onclick="cancelarEdicion()" style="display:none; margin-top:10px;">❌ Cancelar Edición</button>
+        </div>
     </div>
 
+    <div id="view-foods" class="view-container">
+        <header><h1>Mis Alimentos Guardados</h1></header>
+        <div class="card">
+            <input type="text" id="search-food" placeholder="🔍 Buscar alimento..." oninput="renderAlimentosList()">
+            <div id="lista-alimentos">
+                </div>
+        </div>
+    </div>
+
+    <div id="view-daily" class="view-container">
+        <header><h1>Seguimiento Diario</h1></header>
+        <div class="card puntos-header">
+            <div class="puntos-remaining" id="daily-rem">22</div>
+            <div class="puntos-total">de <span id="daily-total-config">22</span> puntos diarios</div>
+            <button class="btn btn-sm btn-outline" onclick="configurarPuntos()" style="margin-top:10px;">⚙️ Configurar</button>
+        </div>
+        <div class="card">
+            <h3>Comidas de Hoy</h3>
+            <div id="lista-comidas-hoy">
+                </div>
+            <button class="btn btn-accent" style="margin-top:20px;" onclick="resetearDia()">🔄 Resetear Día manually</button>
+        </div>
+    </div>
+
+    <div id="view-history" class="view-container">
+        <header><h1>Historial</h1></header>
+        <div class="card">
+            <div id="lista-historial">
+                </div>
+        </div>
+    </div>
+
+    <nav class="tab-bar">
+        <button class="tab-btn active" onclick="switchView('calc')">
+            <span class="tab-btn-icon">🧮</span>
+            <span>Calculadora</span>
+        </button>
+        <button class="tab-btn" onclick="switchView('foods')">
+            <span class="tab-btn-icon">💾</span>
+            <span>Alimentos</span>
+        </button>
+        <button class="tab-btn" onclick="switchView('daily')">
+            <span class="tab-btn-icon">📅</span>
+            <span>Hoy</span>
+        </button>
+        <button class="tab-btn" onclick="switchView('history')">
+            <span class="tab-btn-icon">📈</span>
+            <span>Historial</span>
+        </button>
+    </nav>
+
     <script>
-        // Este código registra el Service Worker solo
+        // --- LOGICA DE LA APLICACIÓN (JAVASCRIPT) ---
+
+        // 1. Configuración de Base de Datos Local (IndexedDB)
+        // Usamos la librería idb-keyval simplificada incluida aquí para gestionar el almacenamiento offline
+        const db = (() => {
+            const DB_NAME = 'PuntosFoodDB';
+            const STORE_ALIMENTOS = 'alimentos'; // Alimentos guardados por usuario
+            const STORE_TRACKER = 'tracker'; // Consumo diario y configuración
+            const STORE_HISTORY = 'history'; // Resumen semanal/mensual
+
+            const openDB = () => indexedDB.open(DB_NAME, 3);
+
+            // Crear tablas si no existen
+            openDB().onupgradeneeded = (e) => {
+                const d = e.target.result;
+                if (!d.objectStoreNames.contains(STORE_ALIMENTOS)) d.createObjectStore(STORE_ALIMENTOS, { keyPath: 'id', autoIncrement: true });
+                if (!d.objectStoreNames.contains(STORE_TRACKER)) d.createObjectStore(STORE_TRACKER);
+                if (!d.objectStoreNames.contains(STORE_HISTORY)) d.createObjectStore(STORE_HISTORY);
+            };
+
+            const promisify = (request) => new Promise((res, rej) => {
+                request.onsuccess = () => res(request.result);
+                request.onerror = () => rej(request.error);
+            });
+
+            const getStore = (storeName, mode = 'readonly') => promisify(openDB()).then(d => d.transaction(storeName, mode).objectStore(storeName));
+
+            return {
+                alimentos: {
+                    add: (ali) => getStore(STORE_ALIMENTOS, 'readwrite').then(s => promisify(s.add(ali))),
+                    update: (ali) => getStore(STORE_ALIMENTOS, 'readwrite').then(s => promisify(s.put(ali))),
+                    getAll: () => getStore(STORE_ALIMENTOS).then(s => promisify(s.getAll())),
+                    delete: (id) => getStore(STORE_ALIMENTOS, 'readwrite').then(s => promisify(s.delete(id)))
+                },
+                tracker: {
+                    get: (key) => getStore(STORE_TRACKER).then(s => promisify(s.get(key))),
+                    set: (key, val) => getStore(STORE_TRACKER, 'readwrite').then(s => promisify(s.put(val, key)))
+                },
+                history: {
+                    getAll: () => getStore(STORE_HISTORY).then(s => promisify(s.getAll())),
+                    setDay: (dateKey, data) => getStore(STORE_HISTORY, 'readwrite').then(s => promisify(s.put(data, dateKey)))
+                }
+            };
+        })();
+
+        // 2. Estado de la Aplicación
+        let alimentosGuardados = [];
+        let configPuntosDiarios = 22;
+        let consumoHoy = { puntosUsados: 0, comidas: [] };
+        let ultimaFechaTrabajo = '';
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarConfiguracion();
+            await comprobarCambioDia();
+            await cargarAlimentos();
+            await renderDailyTracker();
+            await renderHistorial();
+        });
+
+        async function cargarConfiguracion() {
+            configPuntosDiarios = await db.tracker.get('config_puntos') || 22;
+            consumoHoy = await db.tracker.get('consumo_hoy') || { puntosUsados: 0, comidas: [] };
+            ultimaFechaTrabajo = await db.tracker.get('ultima_fecha') || getHoyKey();
+            
+            document.getElementById('daily-total-config').textContent = configPuntosDiarios;
+        }
+
+        // --- FUNCIONES PESTAÑA 1: CALCULADORA ---
+
+        function calcularPuntos() {
+            const grams = parseFloat(document.getElementById('calc-grams').value) || 0;
+            const prot = parseFloat(document.getElementById('calc-prot').value) || 0;
+            const fat = parseFloat(document.getElementById('calc-fat').value) || 0;
+
+            if (grams <= 0) {
+                document.getElementById('puntos-result').textContent = 0;
+                document.getElementById('btn-save').disabled = true;
+                return;
+            }
+
+            // FORMULA EXCEL: Redondeo( (Gramos*(Prot/100)/11) + (Gramos*(Fat/100)/9) )
+            const pProt = (grams * (prot / 100)) / 11;
+            const pFat = (grams * (fat / 100)) / 9;
+            const totalPuntos = Math.round(pProt + pFat);
+
+            document.getElementById('puntos-result').textContent = totalPuntos;
+            document.getElementById('btn-save').disabled = false;
+        }
+
+        async function guardarAlimento() {
+            const name = document.getElementById('calc-name').value || 'Alimento sin nombre';
+            const grams = parseFloat(document.getElementById('calc-grams').value);
+            const prot = parseFloat(document.getElementById('calc-prot').value) || 0;
+            const fat = parseFloat(document.getElementById('calc-fat').value) || 0;
+            const puntos = parseInt(document.getElementById('puntos-result').textContent);
+            const editingId = document.getElementById('editing-id').value;
+
+            const alimentoData = {
+                name: name,
+                baseGrams: grams, // Guardamos la porción base que calculó
+                prot100: prot,
+                fat100: fat,
+                puntosBase: puntos
+            };
+
+            if (editingId) {
+                // Modo Edición
+                alimentoData.id = parseInt(editingId);
+                await db.alimentos.update(alimentoData);
+                alert('Alimento actualizado correctamente');
+                cancelarEdicion();
+            } else {
+                // Modo Nuevo
+                await db.alimentos.add(alimentoData);
+                alert('Alimento guardado en tu lista');
+                limpiarCalculadora();
+            }
+
+            await cargarAlimentos();
+            renderAlimentosList();
+            switchView('foods'); // Ir a ver la lista
+        }
+
+        function limpiarCalculadora() {
+            document.getElementById('calc-name').value = '';
+            document.getElementById('calc-grams').value = '';
+            document.getElementById('calc-prot').value = '';
+            document.getElementById('calc-fat').value = '';
+            document.getElementById('puntos-result').textContent = 0;
+            document.getElementById('btn-save').disabled = true;
+            document.getElementById('editing-id').value = '';
+            document.getElementById('btn-save').textContent = '💾 Guardar Alimento';
+            document.getElementById('btn-cancel-edit').style.display = 'none';
+        }
+
+        function cancelarEdicion() {
+            limpiarCalculadora();
+            switchView('foods');
+        }
+
+        // --- FUNCIONES PESTAÑA 2: MIS ALIMENTOS ---
+
+        async function cargarAlimentos() {
+            alimentosGuardados = await db.alimentos.getAll();
+        }
+
+        function renderAlimentosList() {
+            const lista = document.getElementById('lista-alimentos');
+            const search = document.getElementById('search-food').value.toLowerCase();
+            lista.innerHTML = '';
+
+            const alimentosFiltrados = alimentosGuardados.filter(a => a.name.toLowerCase().includes(search));
+
+            alimentosFiltrados.forEach(ali => {
+                const item = document.createElement('div');
+                item.className = 'alimento-item';
+                item.innerHTML = `
+                    <div class="alimento-info">
+                        <h3>${ali.name}</h3>
+                        <p>${ali.puntosBase} ptos (${ali.baseGrams}g base)</p>
+                        <p style="font-size:0.7rem">P:${ali.prot100}/100g, G:${ali.fat100}/100g</p>
+                    </div>
+                    <div class="alimento-actions">
+                        <button class="btn btn-sm btn-outline" onclick="prepararEdicion(${ali.id})">✏️ Editar</button>
+                        <button class="btn btn-accent btn-sm" onclick="añadirConsumoDirecto(${ali.id})">➕ Comer</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarAlimento(${ali.id})">🗑️</button>
+                    </div>
+                `;
+                lista.appendChild(item);
+            });
+        }
+
+        async function eliminarAlimento(id) {
+            if(confirm('¿Seguro que quieres borrar este alimento?')){
+                await db.alimentos.delete(id);
+                await cargarAlimentos();
+                renderAlimentosList();
+            }
+        }
+
+        function prepararEdicion(id) {
+            const ali = alimentosGuardados.find(a => a.id === id);
+            if (!ali) return;
+
+            switchView('calc');
+            document.getElementById('calc-name').value = ali.name;
+            document.getElementById('calc-grams').value = ali.baseGrams;
+            document.getElementById('calc-prot').value = ali.prot100;
+            document.getElementById('calc-fat').value = ali.fat100;
+            document.getElementById('puntos-result').textContent = ali.puntosBase;
+            document.getElementById('editing-id').value = ali.id;
+            
+            document.getElementById('btn-save').disabled = false;
+            document.getElementById('btn-save').textContent = '💾 Actualizar Cambios';
+            document.getElementById('btn-cancel-edit').style.display = 'block';
+        }
+
+        // --- FUNCIONES PESTAÑA 3: TRACKER DIARIO ---
+
+        async function añadirConsumoDirecto(alimentoId) {
+            const ali = alimentosGuardados.find(a => a.id === alimentoId);
+            if (!ali) return;
+
+            const gramosIngeridos = prompt(`¿Cuántos gramos de "${ali.name}" has comido? (Base guardada: ${ali.baseGrams}g)`, ali.baseGrams);
+            
+            if (gramosIngeridos === null || gramosIngeridos <= 0) return;
+
+            // Recalcular puntos según la cantidad ingerida real
+            // PuntosRelaes = (GramosReales/GramosBase) * PuntosBase
+            const factor = parseFloat(gramosIngeridos) / ali.baseGrams;
+            const puntosReales = Math.round(ali.puntosBase * factor);
+
+            consumoHoy.comidas.push({
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                name: ali.name,
+                grams: gramosIngeridos,
+                puntos: puntosReales
+            });
+            consumoHoy.puntosUsados += puntosReales;
+
+            await guardarConsumoHoy();
+            await renderDailyTracker();
+            switchView('daily');
+        }
+
+        async function guardarConsumoHoy() {
+            await db.tracker.set('consumo_hoy', consumoHoy);
+            await db.tracker.set('ultima_fecha', getHoyKey());
+        }
+
+        async function renderDailyTracker() {
+            const rest = configPuntosDiarios - consumoHoy.puntosUsados;
+            const remEl = document.getElementById('daily-rem');
+            remEl.textContent = rest;
+
+            if (rest < 0) remEl.classList.add('over-limit');
+            else remEl.classList.remove('over-limit');
+
+            const listaComidas = document.getElementById('lista-comidas-hoy');
+            listaComidas.innerHTML = '';
+
+            consumoHoy.comidas.forEach((comida, index) => {
+                const item = document.createElement('div');
+                item.className = 'alimento-item';
+                item.innerHTML = `
+                    <div class="alimento-info">
+                        <h3>${comida.name} <span style="font-weight:normal; font-size:0.8rem; color:var(--text-secondary)">(${comida.time})</span></h3>
+                        <p>${comida.grams}g -> <strong>${comida.puntos} ptos</strong></p>
+                    </div>
+                    <div class="alimento-actions">
+                        <button class="btn btn-danger btn-sm" onclick="borrarComidaHoy(${index})">🗑️</button>
+                    </div>
+                `;
+                listaComidas.appendChild(item);
+            });
+        }
+
+        async function borrarComidaHoy(index) {
+            if(confirm('¿Borrar esta comida de hoy?')){
+                const comida = consumoHoy.comidas[index];
+                consumoHoy.puntosUsados -= comida.puntos;
+                consumoHoy.comidas.splice(index, 1);
+                await guardarConsumoHoy();
+                renderDailyTracker();
+            }
+        }
+
+        async function resetearDia() {
+            if(confirm('¿Seguro que quieres resetear los puntos de hoy? Se borrarán las comidas introducidas.')){
+                consumoHoy = { puntosUsados: 0, comidas: [] };
+                await guardarConsumoHoy();
+                renderDailyTracker();
+            }
+        }
+
+        async function configurarPuntos() {
+            const nuevo = prompt('Introduce tus puntos diarios totales:', configPuntosDiarios);
+            if (nuevo !== null && nuevo > 0) {
+                configPuntosDiarios = parseInt(nuevo);
+                await db.tracker.set('config_puntos', configPuntosDiarios);
+                document.getElementById('daily-total-config').textContent = configPuntosDiarios;
+                renderDailyTracker();
+            }
+        }
+
+        // --- FUNCIONES PESTAÑA 4: HISTORIAL (SEMANAL/MENSUAL) ---
+
+        async function comprobarCambioDia() {
+            const hoy = getHoyKey();
+            if (ultimaFechaTrabajo !== hoy) {
+                // Ha cambiado el día. Guardar el resumen de 'ayer' en el historial
+                const resumenAyer = {
+                    dateKey: ultimaFechaTrabajo,
+                    dateLabel: getReadableDate(ultimaFechaTrabajo),
+                    puntosTotales: configPuntosDiarios,
+                    puntosUsados: consumoHoy.puntosUsados,
+                    comidasCount: consumoHoy.comidas.length
+                };
+                
+                // Solo guardar si hubo actividad
+                if (consumoHoy.comidas.length > 0) {
+                    await db.history.setDay(ultimaFechaTrabajo, resumenAyer);
+                }
+
+                // Resetear el tracker diario
+                consumoHoy = { puntosUsados: 0, comidas: [] };
+                ultimaFechaTrabajo = hoy;
+                await guardarConsumoHoy();
+            }
+        }
+
+        async function renderHistorial() {
+            const historial = await db.history.getAll();
+            const lista = document.getElementById('lista-historial');
+            lista.innerHTML = '';
+
+            if (historial.length === 0) {
+                lista.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Aún no hay días guardados en el historial.</p>';
+                return;
+            }
+
+            // Ordenar por fecha descendente (más reciente primero)
+            historial.sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+
+            // Podrías agrupar por semanas aquí, pero para empezar, mostramos la lista de días
+            historial.forEach(dia => {
+                const balance = dia.puntosTotales - dia.puntosUsados;
+                const balanceClass = balance < 0 ? 'over-limit' : '';
+
+                const item = document.createElement('div');
+                item.className = 'historial-dia';
+                item.innerHTML = `
+                    <div class="historial-date">${dia.dateLabel}</div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                        <span>Usados: <strong>${dia.puntosUsados}</strong> / ${dia.puntosTotales}</span>
+                        <span class="${balanceClass}">Balance: <strong>${balance}</strong></span>
+                    </div>
+                    <p style="margin:5px 0 0 0; font-size:0.8rem; color:var(--text-secondary)">Comidas registradas: ${dia.comidasCount}</p>
+                `;
+                lista.appendChild(item);
+            });
+        }
+
+        // --- UTILIDADES ---
+
+        function switchView(viewName) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            // Mostrar la seleccionada
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            
+            // Activar botón de la barra
+            const btnIndex = ['calc', 'foods', 'daily', 'history'].indexOf(viewName);
+            document.querySelectorAll('.tab-btn')[btnIndex].classList.add('active');
+
+            if (viewName === 'foods') renderAlimentosList();
+            if (viewName === 'history') renderHistorial();
+        }
+
+        function getHoyKey() {
+            return new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        }
+
+        function getReadableDate(dateKey) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateKey + 'T00:00:00').toLocaleDateString('es-ES', options);
+        }
+
+        // --- REGISTRO DEL SERVICE WORKER (PARA OFFLINE) ---
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-            .then(() => console.log("Service Worker Activo"))
-            .catch(err => console.log("Error:", err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registrado', reg))
+                    .catch(err => console.error('Error SW', err));
+            });
         }
     </script>
 </body>

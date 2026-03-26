@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Puntos Cloud App</title>
+    <title>Mis Puntos Privados</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2196F3">
     <style>
         :root { --primary: #2196F3; --bg: #f4f7f9; --card: #ffffff; }
-        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; color: #333; }
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 80px; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .card { background: var(--card); margin: 12px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         label { display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px; font-weight: 600; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
         .res-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 2px solid var(--primary); }
         .res-val { font-size: 2.2rem; font-weight: bold; color: var(--primary); display: block; }
-        .btn { border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; margin-bottom: 10px; transition: 0.2s; }
+        .btn { border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; margin-bottom: 10px; }
         .btn-save { background: var(--primary); color: white; }
         .btn-edit { background: #FF9800; color: white; width: auto; padding: 8px 12px; font-size: 0.8rem; }
         .btn-add { background: #4CAF50; color: white; width: auto; padding: 8px 12px; font-size: 0.8rem; }
@@ -27,57 +27,74 @@
         .view.active { display: block; }
         .item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
         .daily-circle { width: 100px; height: 100px; border: 6px solid var(--primary); border-radius: 50%; margin: 10px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .daily-circle span { font-size: 2rem; font-weight: bold; }
+        /* Auth Styles */
+        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; padding: 20px; }
+        #app-content { display: none; }
     </style>
 </head>
 <body>
 
-<header id="app-title">Calculadora Nube</header>
+<div id="auth-screen">
+    <div class="card" style="width: 100%; max-width: 320px;">
+        <h2 style="text-align:center; color:var(--primary);">Mis Puntos</h2>
+        <label>Email</label><input type="email" id="auth-email">
+        <label>Contraseña</label><input type="password" id="auth-pass">
+        <button class="btn btn-save" onclick="login()">Entrar</button>
+        <button class="btn" style="background:#eee; font-size:0.8rem;" onclick="signup()">Crear Cuenta Nueva</button>
+    </div>
+</div>
 
-<div id="v-calc" class="view active">
-    <div class="card">
-        <label>Alimento</label><input type="text" id="c-name" placeholder="Ej: Jamón">
-        <label>Calorías (por 100g)</label><input type="number" id="c-cal" oninput="doCalc()">
-        <label>Grasas (por 100g)</label><input type="number" id="c-fat" oninput="doCalc()">
-        <label>Gramos Porción</label><input type="number" id="c-gram" oninput="doCalc()">
-        <div class="res-container">
-            <span id="res-extra" style="font-size: 0.75rem; color: #666;">Valor eXtra: 0</span><br>
-            <span class="res-val" id="res-pts">0</span>
-            <span style="font-size: 0.8rem; color: var(--primary)">PUNTOS</span>
+<div id="app-content">
+    <header>
+        <span>Puntos Pro</span>
+        <button onclick="logout()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration:underline;">Salir</button>
+    </header>
+
+    <div id="v-calc" class="view active">
+        <div class="card">
+            <label>Alimento</label><input type="text" id="c-name" placeholder="Ej: Pollo">
+            <label>Calorías (100g)</label><input type="number" id="c-cal" oninput="doCalc()">
+            <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="doCalc()">
+            <label>Gramos Porción</label><input type="number" id="c-gram" oninput="doCalc()">
+            <div class="res-container">
+                <span id="res-extra" style="font-size: 0.7rem; color: #666;">Extra: 0</span><br>
+                <span class="res-val" id="res-pts">0</span>
+            </div>
+            <input type="hidden" id="edit-id">
+            <button class="btn btn-save" id="btn-save" onclick="save()">💾 Guardar en mi Nube</button>
         </div>
-        <input type="hidden" id="edit-id">
-        <button class="btn btn-save" id="btn-save" onclick="save()">💾 Guardar en la Nube</button>
     </div>
-</div>
 
-<div id="v-list" class="view">
-    <div class="card">
-        <input type="text" id="search" placeholder="🔍 Buscar..." oninput="renderList()">
-        <div id="food-list">Cargando alimentos de la nube...</div>
+    <div id="v-list" class="view">
+        <div class="card">
+            <input type="text" id="search" placeholder="🔍 Buscar..." oninput="renderList()">
+            <div id="food-list">Cargando tus alimentos...</div>
+        </div>
     </div>
-</div>
 
-<div id="v-day" class="view">
-    <div class="card" style="text-align:center;">
-        <label>PUNTOS RESTANTES</label>
-        <div class="daily-circle"><span id="d-rem">22</span></div>
-        <p>Hoy: <b id="d-used">0</b> de 22 pts</p>
+    <div id="v-day" class="view">
+        <div class="card" style="text-align:center;">
+            <label>RESTANTES HOY</label>
+            <div class="daily-circle"><span id="d-rem">22</span></div>
+            <p>Consumido: <b id="d-used">0</b> pts</p>
+        </div>
+        <div class="card"><div id="day-log"></div><button class="btn" style="background:#eee; font-size:0.8rem; margin-top:10px;" onclick="resetDay()">Resetear Día</button></div>
     </div>
-    <div class="card"><div id="day-log"></div><button class="btn" style="background:#eee; font-size:0.8rem;" onclick="resetDay()">Resetear Día</button></div>
+
+    <div id="v-hist" class="view"><div class="card"><div id="hist-list"></div></div></div>
+
+    <nav class="tab-bar">
+        <div class="tab active" onclick="tab('calc')">🧮Calc</div>
+        <div class="tab" onclick="tab('list')">📖Lista</div>
+        <div class="tab" onclick="tab('day')">🍴Hoy</div>
+        <div class="tab" onclick="tab('hist')">📈Hist</div>
+    </nav>
 </div>
-
-<div id="v-hist" class="view"><div class="card"><div id="hist-list"></div></div></div>
-
-<nav class="tab-bar">
-    <div class="tab active" onclick="tab('calc')">Calc</div>
-    <div class="tab" onclick="tab('list')">Lista</div>
-    <div class="tab" onclick="tab('day')">Hoy</div>
-    <div class="tab" onclick="tab('hist')">Historial</div>
-</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAwv0RBFiAk-frLYK0LDyCyRduL2IVqOME",
@@ -85,36 +102,52 @@
       projectId: "mispuntos-ea353",
       storageBucket: "mispuntos-ea353.firebasestorage.app",
       messagingSenderId: "762879678681",
-      appId: "1:762879678681:web:68a2bc4677e547a57b86c8",
-      measurementId: "G-3J62DWPG28"
+      appId: "1:762879678681:web:68a2bc4677e547a57b86c8"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
+    const auth = getAuth(app);
+    let userUID = null;
     let foods = [];
     let dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    onSnapshot(collection(db, "alimentos"), (snapshot) => {
-        foods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderList();
-    });
-
-    const dayRef = doc(db, "config", "consumo_hoy");
-    onSnapshot(dayRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            if(data.date === new Date().toLocaleDateString()) {
-                dayData = data;
-            } else {
-                dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] };
-                setDoc(dayRef, dayData);
-            }
-            renderDay();
+    // Vigilante de sesión
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            userUID = user.uid;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            iniciarApp();
         } else {
-            setDoc(dayRef, dayData);
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('app-content').style.display = 'none';
         }
     });
+
+    window.login = () => signInWithEmailAndPassword(auth, document.getElementById('auth-email').value, document.getElementById('auth-pass').value).catch(e => alert("Error: " + e.message));
+    window.signup = () => createUserWithEmailAndPassword(auth, document.getElementById('auth-email').value, document.getElementById('auth-pass').value).catch(e => alert("Error: " + e.message));
+    window.logout = () => signOut(auth);
+
+    function iniciarApp() {
+        // Alimentos solo del usuario actual
+        const qFoods = query(collection(db, "alimentos"), where("uid", "==", userUID));
+        onSnapshot(qFoods, (snapshot) => {
+            foods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderList();
+        });
+
+        // Consumo diario solo del usuario actual
+        const dayRef = doc(db, "consumos", userUID);
+        onSnapshot(dayRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(data.date === new Date().toLocaleDateString()) { dayData = data; } 
+                else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(dayRef, dayData); }
+                renderDay();
+            } else { setDoc(dayRef, dayData); }
+        });
+    }
 
     window.doCalc = () => {
         const cal = parseFloat(document.getElementById('c-cal').value) || 0;
@@ -122,13 +155,14 @@
         const gr = parseFloat(document.getElementById('c-gram').value) || 0;
         const extra = (cal / 50) + (fat / 12);
         const pts = (extra * gr) / 100;
-        document.getElementById('res-extra').innerText = "Valor eXtra: " + extra.toFixed(3);
+        document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3);
         document.getElementById('res-pts').innerText = pts.toFixed(2);
     };
 
     window.save = async () => {
         const id = document.getElementById('edit-id').value;
         const data = {
+            uid: userUID, // <--- Esto protege el alimento
             name: document.getElementById('c-name').value || 'Sin nombre',
             cal: document.getElementById('c-cal').value,
             fat: document.getElementById('c-fat').value,
@@ -137,15 +171,14 @@
         };
         if (id) await updateDoc(doc(db, "alimentos", id), data);
         else await addDoc(collection(db, "alimentos"), data);
-        document.getElementById('c-name').value = '';
-        document.getElementById('edit-id').value = '';
+        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = '';
         tab('list');
     };
 
     window.renderList = () => {
         const q = document.getElementById('search').value.toLowerCase();
         const div = document.getElementById('food-list');
-        div.innerHTML = foods.length ? '' : 'No hay alimentos.';
+        div.innerHTML = foods.length ? '' : 'No hay alimentos guardados.';
         foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
             div.innerHTML += `<div class="item">
                 <div class="info"><b>${f.name}</b><br><small>${f.pts} pts (${f.gram}g)</small></div>
@@ -162,11 +195,10 @@
         const f = foods.find(x => x.id === id);
         const gr = prompt(`¿Gramos de ${f.name}?`, f.gram);
         if(gr) {
-            const extra = (f.cal / 50) + (f.fat / 12);
-            const pts = (extra * gr) / 100;
+            const pts = parseFloat((((f.cal/50)+(f.fat/12))*gr/100).toFixed(2));
             dayData.used += pts;
-            dayData.items.unshift({ name: f.name, pts: pts.toFixed(2), gr: gr });
-            await setDoc(doc(db, "config", "consumo_hoy"), dayData);
+            dayData.items.unshift({ name: f.name, pts: pts, gr: gr });
+            await setDoc(doc(db, "consumos", userUID), dayData);
             tab('day');
         }
     };
@@ -180,24 +212,33 @@
 
     window.prepEdit = (id) => {
         const f = foods.find(x => x.id === id);
-        document.getElementById('c-name').value = f.name;
-        document.getElementById('c-cal').value = f.cal;
-        document.getElementById('c-fat').value = f.fat;
-        document.getElementById('c-gram').value = f.gram;
-        document.getElementById('edit-id').value = f.id;
-        window.doCalc();
-        tab('calc');
+        document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal;
+        document.getElementById('c-fat').value = f.fat; document.getElementById('c-gram').value = f.gram;
+        document.getElementById('edit-id').value = f.id; window.doCalc(); tab('calc');
     };
 
     window.delFood = async (id) => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "alimentos", id)); };
-    window.resetDay = async () => { if(confirm('¿Resetear?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "config", "consumo_hoy"), dayData); } };
+    window.resetDay = async () => { if(confirm('¿Reiniciar?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
+
+    async function archiveDay(data) {
+        const histRef = doc(collection(db, "historiales"), userUID + "_" + data.date.replace(/\//g, "-"));
+        await setDoc(histRef, { ...data, uid: userUID });
+    }
 
     window.tab = (v) => {
         document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active'));
         document.getElementById('v-'+v).classList.add('active');
         const labels = ['calc', 'list', 'day', 'hist'];
         document.querySelectorAll('.tab')[labels.indexOf(v)].classList.add('active');
+        if(v === 'hist') renderHist();
     };
+
+    async function renderHist() {
+        const q = query(collection(db, "historiales"), where("uid", "==", userUID));
+        const snap = await getDocs(q);
+        const hist = snap.docs.map(d => d.data());
+        document.getElementById('hist-list').innerHTML = hist.map(h => `<div class="item"><b>${h.date}</b><span>${h.used.toFixed(1)} pts</span></div>`).join('');
+    }
 </script>
 </body>
 </html>

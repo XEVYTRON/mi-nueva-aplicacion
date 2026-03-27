@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mis Puntos Pro V5</title>
+    <title>Mis Puntos Pro</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7B1FA2">
     <style>
@@ -36,12 +36,6 @@
         #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; padding: 20px; }
         #app-content { display: none; }
     </style>
-    <script>
-        window.onerror = function(msg, url, line) {
-            alert("🔥 ERROR CRÍTICO:\n" + msg + "\nLínea: " + line);
-            return true; 
-        };
-    </script>
 </head>
 <body>
 
@@ -54,20 +48,23 @@
         <button class="btn btn-save" id="btnLogin" disabled style="background:#999;">Cargando...</button>
         <button class="btn" id="btnSignup" disabled style="background:#eee; color:#999; margin-top:10px;">Cargando...</button>
 
-        <div style="text-align:center; font-size:0.8rem; color:red; margin-top:15px; font-weight:bold;">Versión 5.0 (Detector de Fallos)</div>
+        <div style="text-align:center; margin-top:25px;">
+            <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿Se ha atascado? Limpiar App</button>
+        </div>
+        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:10px;">Versión Definitiva 6.0</div>
     </div>
 </div>
 
 <div id="app-content">
     <header>
-        <span>Mis Puntos Pro V5</span>
+        <span>Mis Puntos Pro</span>
         <button id="btnLogout" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
         <div class="card">
-            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga">
-            <label>Calorías (100g)</label><input type="number" id="c-cal" id="c-cal-input">
+            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga casera">
+            <label>Calorías (100g)</label><input type="number" id="c-cal">
             <label>Grasas (100g)</label><input type="number" id="c-fat">
             <label>Gramos Porción</label><input type="number" id="c-gram">
             <div class="res-container">
@@ -83,8 +80,8 @@
     <div id="v-list" class="view">
         <div class="card">
             <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button id="btnImportar" style="flex:1; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold;">📥 Importar Libro</button>
-                <button id="btnBorrarTodo" style="background:#F44336; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold;">🗑️ Borrar Todo</button>
+                <button id="btnImportar" style="flex:1; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Todo el Libro</button>
+                <button id="btnBorrarTodo" style="background:#F44336; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🗑️ Borrar</button>
             </div>
             <input type="text" id="search" placeholder="🔍 Buscar alimento...">
             <div id="food-list">Cargando...</div>
@@ -131,9 +128,19 @@
     </nav>
 </div>
 
+<script>
+    function limpiarApp() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let r of registrations) { r.unregister(); }
+                window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
+            });
+        } else { window.location.reload(true); }
+    }
+</script>
+
 <script type="module">
     try {
-        // Importaciones de Firebase
         const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js");
         const { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
         const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
@@ -151,61 +158,40 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        let userUID = null;
-        let foods = [];
-        let buyList = [];
-        let dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
+        let userUID = null; let foods = []; let buyList = []; let dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-        // FIREBASE HA CARGADO BIEN: ACTIVAMOS LOS BOTONES
+        // ACTIVAR BOTONES AL CARGAR
         const btnLogin = document.getElementById('btnLogin');
         const btnSignup = document.getElementById('btnSignup');
-        
-        btnLogin.innerText = "Entrar";
-        btnLogin.style.background = "var(--primary)";
-        btnLogin.disabled = false;
+        btnLogin.innerText = "Entrar"; btnLogin.style.background = "var(--primary)"; btnLogin.disabled = false;
+        btnSignup.innerText = "Crear Cuenta Nueva"; btnSignup.style.color = "#333"; btnSignup.disabled = false;
 
-        btnSignup.innerText = "Crear Cuenta Nueva";
-        btnSignup.style.color = "#333";
-        btnSignup.disabled = false;
-
-        // EVENTOS DE AUTENTICACIÓN
         btnLogin.addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            if (!email || !pass) return alert("Faltan datos");
-            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Error Auth: " + e.message); }
+            const email = document.getElementById('auth-email').value; const pass = document.getElementById('auth-pass').value;
+            if (!email || !pass) return alert("Escribe tu correo y contraseña.");
+            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Error al entrar: " + e.message); }
         });
 
         btnSignup.addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            if (!email || !pass) return alert("Faltan datos");
-            try { await createUserWithEmailAndPassword(auth, email, pass); alert("Cuenta Creada!"); } catch (e) { alert("Error Regis: " + e.message); }
+            const email = document.getElementById('auth-email').value; const pass = document.getElementById('auth-pass').value;
+            if (!email || !pass) return alert("Escribe tu correo y contraseña.");
+            try { await createUserWithEmailAndPassword(auth, email, pass); alert("Cuenta Creada!"); } catch (e) { alert("Error al crear: " + e.message); }
         });
 
         document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
-        // CONTROL DE SESIÓN
         onAuthStateChanged(auth, (user) => {
             if (user) { 
-                userUID = user.uid; 
-                document.getElementById('auth-screen').style.display = 'none'; 
-                document.getElementById('app-content').style.display = 'block'; 
-                iniciarApp(); 
+                userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); 
             } else { 
-                userUID = null; 
-                document.getElementById('auth-screen').style.display = 'flex'; 
-                document.getElementById('app-content').style.display = 'none'; 
+                userUID = null; document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-content').style.display = 'none'; 
             }
         });
 
-        // FUNCIONES DE LA APP
         function iniciarApp() {
             onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
-                foods = snap.docs.map(d => ({ id: d.id, ...d.data() })); 
-                renderList();
-                const sel = document.getElementById('buy-select'); 
-                sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+                foods = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderList();
+                const sel = document.getElementById('buy-select'); sel.innerHTML = '<option value="">-- Seleccionar --</option>';
                 foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
             });
             onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
@@ -217,157 +203,28 @@
                 } else { setDoc(doc(db, "consumos", userUID), dayData); }
             });
             onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => { 
-                buyList = snap.docs.map(d => ({ id: d.id, ...d.data() })); 
-                renderBuy(); 
+                buyList = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderBuy(); 
             });
         }
 
-        // CÁLCULO
         const doCalc = () => {
-            const cal = parseFloat(document.getElementById('c-cal').value) || 0; 
-            const fat = parseFloat(document.getElementById('c-fat').value) || 0; 
-            const gr = parseFloat(document.getElementById('c-gram').value) || 0;
-            const extra = (cal / 50) + (fat / 12); 
-            document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3); 
-            document.getElementById('res-pts').innerText = ((extra * gr) / 100).toFixed(2);
+            const cal = parseFloat(document.getElementById('c-cal').value) || 0; const fat = parseFloat(document.getElementById('c-fat').value) || 0; const gr = parseFloat(document.getElementById('c-gram').value) || 0;
+            const extra = (cal / 50) + (fat / 12); document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3); document.getElementById('res-pts').innerText = ((extra * gr) / 100).toFixed(2);
         };
         document.getElementById('c-cal').addEventListener('input', doCalc);
         document.getElementById('c-fat').addEventListener('input', doCalc);
         document.getElementById('c-gram').addEventListener('input', doCalc);
 
-        // GUARDAR ALIMENTO
         document.getElementById('btnSaveFood').addEventListener('click', async () => {
             const id = document.getElementById('edit-id').value;
             const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
             id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
-            document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; 
-            tab('list');
+            document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; tab('list');
         });
 
-        // RENDER LISTA
         function renderList() {
             const q = document.getElementById('search').value.toLowerCase();
-            const div = document.getElementById('food-list'); 
-            div.innerHTML = foods.length ? '' : 'Lista vacía.';
+            const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
             foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
-                let desc = f.isPdf ? `${f.basePts} pts por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
-                div.innerHTML += `<div class="item"><div class="info"><b>${f.name}</b><br><small style="color:#666">${desc}</small></div>
-                    <div class="actions"><button class="btn-add" data-eat="${f.id}">➕</button><button class="btn-del" data-del="${f.id}">🗑️</button></div></div>`;
-            });
-            // Asignar eventos a los botones dinámicos
-            document.querySelectorAll('button[data-eat]').forEach(btn => btn.onclick = () => eat(btn.getAttribute('data-eat')));
-            document.querySelectorAll('button[data-del]').forEach(btn => btn.onclick = () => delFood(btn.getAttribute('data-del')));
-        }
-        document.getElementById('search').addEventListener('input', renderList);
-
-        // COMER
-        async function eat(id) {
-            const f = foods.find(x => x.id === id);
-            if(!f) return;
-            if (f.isPdf) {
-                const input = prompt(`¿Cantidad de ${f.name} (${f.unit})?\nReferencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts`, f.baseQty);
-                if (input) {
-                    const consumido = parseFloat(input.replace(',', '.'));
-                    if (!isNaN(consumido)) {
-                        let pts = 0;
-                        if (f.basePts > 0) { pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2)); }
-                        dayData.used += pts;
-                        dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
-                        await setDoc(doc(db, "consumos", userUID), dayData); 
-                        tab('day');
-                    }
-                }
-            } else {
-                const gr = prompt(`¿Cuántos gramos de ${f.name}?`, f.gram);
-                if(gr) {
-                    const extra = (f.cal / 50) + (f.fat / 12); const pts = parseFloat(((extra * gr) / 100).toFixed(2));
-                    dayData.used += pts; dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: gr + 'g', originalId: f.id });
-                    await setDoc(doc(db, "consumos", userUID), dayData); 
-                    tab('day');
-                }
-            }
-        }
-
-        // RENDER DÍA
-        function renderDay() {
-            document.getElementById('d-rem').innerText = (22 - dayData.used).toFixed(1); 
-            document.getElementById('d-used').innerText = dayData.used.toFixed(1);
-            document.getElementById('day-log').innerHTML = dayData.items.map(i => `<div class="item"><div class="info"><b>${i.name}</b><br><small>${i.gr} = <b>${i.pts} pts</b></small></div><div class="actions"><button class="btn-del" data-delday="${i.id}">🗑️</button></div></div>`).join('');
-            document.querySelectorAll('button[data-delday]').forEach(btn => btn.onclick = () => deleteDayItem(parseInt(btn.getAttribute('data-delday'))));
-        }
-
-        async function deleteDayItem(tid) { 
-            const i = dayData.items.find(x => x.id === tid); 
-            dayData.used -= i.pts; dayData.items = dayData.items.filter(x => x.id !== tid); 
-            await setDoc(doc(db, "consumos", userUID), dayData); 
-        }
-
-        async function delFood(id) { 
-            if(confirm('¿Borrar alimento permanentemente?')) await deleteDoc(doc(db, "alimentos", id)); 
-        }
-
-        // BORRAR TODO Y RESETEAR DÍA
-        document.getElementById('btnBorrarTodo').addEventListener('click', async () => {
-            if (foods.length === 0) return alert("Tu lista ya está vacía.");
-            if (confirm(`⚠️ ¡CUIDADO! Vas a borrar TODOS tus alimentos (${foods.length}). ¿Seguro?`)) {
-                try { await Promise.all(foods.map(f => deleteDoc(doc(db, "alimentos", f.id)))); alert("Lista borrada."); } 
-                catch (error) { alert("Error al borrar: " + error.message); }
-            }
-        });
-
-        document.getElementById('btnResetDay').addEventListener('click', async () => {
-            if(confirm('¿Borrar consumos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); }
-        });
-
-        // COMPRAS
-        document.getElementById('btnAddBuy').addEventListener('click', async () => {
-            const val = document.getElementById('buy-input').value.trim(); 
-            if(val) { await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false, date: Date.now() }); document.getElementById('buy-input').value = ''; document.getElementById('buy-select').value=''; }
-        });
-        document.getElementById('buy-select').addEventListener('change', (e) => document.getElementById('buy-input').value = e.target.value);
-        
-        function renderBuy() { 
-            const pen = document.getElementById('buy-list-pending'); const done = document.getElementById('buy-list-done'); pen.innerHTML = ''; done.innerHTML = ''; 
-            buyList.sort((a,b)=>b.date-a.date).forEach(i => { 
-                const h = `<div class="buy-item ${i.done?'done':''}"> <span style="flex:1" data-tgbuy="${i.id}" data-st="${i.done}">${i.done?'✅':'▫️'} ${i.name}</span> <div><button class="btn-del" data-delbuy="${i.id}">✕</button></div></div>`; 
-                i.done ? done.innerHTML += h : pen.innerHTML += h; 
-            }); 
-            document.querySelectorAll('span[data-tgbuy]').forEach(s => s.onclick = async () => await updateDoc(doc(db, "compras", s.getAttribute('data-tgbuy')), { done: s.getAttribute('data-st') === 'false' }));
-            document.querySelectorAll('button[data-delbuy]').forEach(b => b.onclick = async () => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "compras", b.getAttribute('data-delbuy'))); });
-        }
-
-        // TABS
-        function tab(v) { 
-            document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active')); 
-            document.getElementById('v-'+v).classList.add('active'); 
-            document.querySelector(`.tab[data-target="${v}"]`).classList.add('active'); 
-        }
-        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => tab(t.getAttribute('data-target'))));
-
-        async function archiveDay(d) { await setDoc(doc(collection(db, "historiales"), userUID + "_" + d.date.replace(/\//g, "-")), { ...d, uid: userUID }); }
-
-        // --- IMPORTAR LOTE (MÍNIMO PARA NO SATURAR EL CÓDIGO) ---
-        document.getElementById('btnImportar').addEventListener('click', async () => {
-            const catalogo = [
-                { name: "Verduras, Hortalizas (Libres)", qty: 1, unit: "ración", pts: 0 },
-                { name: "Frutas naturales", qty: 1, unit: "ud", pts: 0 },
-                { name: "Aceitunas negras", qty: 4, unit: "ud", pts: 1 },
-                { name: "Nachos", qty: 50, unit: "g", pts: 5 },
-                { name: "Pechuga Pollo/Pavo", qty: 100, unit: "g", pts: 2 },
-                { name: "Atún fresco", qty: 100, unit: "g", pts: 3 },
-                { name: "Pan de barra", qty: 50, unit: "g", pts: 2.5 }
-            ];
-            if(confirm(`Se importarán alimentos básicos. ¿Continuar?`)) {
-                try {
-                    for(let f of catalogo) { await addDoc(collection(db, "alimentos"), { uid: userUID, name: f.name, isPdf: true, baseQty: f.qty, unit: f.unit, basePts: f.pts, cal: 0, fat: 0, gram: f.qty, pts: f.pts }); }
-                    alert("Importado con éxito");
-                } catch(e) { alert("Error: " + e.message); }
-            }
-        });
-
-    } catch (error) {
-        alert("💥 FALLO EN EL CÓDIGO:\n" + error.message);
-    }
-</script>
-</body>
-</html>
+                let desc = f.isPdf ? `<span style="color:var(--primary); font-weight:bold;">${f.basePts} pts</span> por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
+                div.innerHTML += `<div class="item"><div class="info"><b>${

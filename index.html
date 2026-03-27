@@ -48,9 +48,10 @@
         <button class="btn btn-save" onclick="window.entrar()">Entrar</button>
         <button class="btn" onclick="window.registrar()" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
 
-        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:20px;" id="version-check">
-            Versión 2.0
+        <div style="text-align:center; margin-top:25px;">
+            <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿No funciona? Limpiar App</button>
         </div>
+        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:10px;">Versión 3.0 (Catálogo Completo)</div>
     </div>
 </div>
 
@@ -78,7 +79,7 @@
 
     <div id="v-list" class="view">
         <div class="card">
-            <button onclick="window.importarLote()" style="background:var(--primary); color:white; padding:12px; width:100%; border:none; border-radius:8px; margin-bottom:15px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Gran Catálogo (PDF)</button>
+            <button onclick="window.importarLote()" style="background:var(--primary); color:white; padding:12px; width:100%; border:none; border-radius:8px; margin-bottom:15px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Todo el Libro (PDF)</button>
             <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="window.renderList()">
             <div id="food-list">Cargando...</div>
         </div>
@@ -124,6 +125,17 @@
     </nav>
 </div>
 
+<script>
+    function limpiarApp() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let r of registrations) { r.unregister(); }
+                window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
+            });
+        } else { window.location.reload(true); }
+    }
+</script>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -143,98 +155,152 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    // --- ACCIONES DE BOTONES (AHORA SÍ FUNCIONAN) ---
     window.entrar = async () => {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
         if (!email || !pass) return alert("Escribe tu correo y contraseña.");
-        try { 
-            await signInWithEmailAndPassword(auth, email, pass); 
-        } catch (e) { alert("Fallo al entrar: " + e.message); }
+        try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Fallo al entrar: " + e.message); }
     };
 
     window.registrar = async () => {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
         if (!email || !pass) return alert("Escribe tu correo y contraseña.");
-        try { 
-            await createUserWithEmailAndPassword(auth, email, pass); 
-            alert("¡Cuenta creada con éxito!"); 
-        } catch (e) { alert("Fallo al registrar: " + e.message); }
+        try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Cuenta creada con éxito!"); } catch (e) { alert("Fallo al registrar: " + e.message); }
     };
 
     window.salir = () => { signOut(auth); };
 
     onAuthStateChanged(auth, (user) => {
         if (user) { 
-            userUID = user.uid; 
-            document.getElementById('auth-screen').style.display = 'none'; 
-            document.getElementById('app-content').style.display = 'block'; 
-            iniciarApp(); 
+            userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); 
         } else { 
-            userUID = null; 
-            document.getElementById('auth-screen').style.display = 'flex'; 
-            document.getElementById('app-content').style.display = 'none'; 
+            userUID = null; document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-content').style.display = 'none'; 
         }
     });
 
-    // --- GRAN CATÁLOGO EXTRAÍDO DEL PDF ---
+    // --- CATÁLOGO GIGANTE DEL PDF ---
     window.importarLote = async () => {
         const catalogo = [
-            { name: "Todas las frutas naturales", qty: 1, unit: "ración", pts: 0 },
-            { name: "Verduras y Hortalizas", qty: 1, unit: "ración", pts: 0 },
-            { name: "Yogur 0% natural", qty: 1, unit: "ud", pts: 0 },
-            { name: "Refresco Light/Zero", qty: 1, unit: "lata", pts: 0 },
+            // CERO PUNTOS
+            { name: "Verduras, Hortalizas (Acelga, Ajo, Apio, Brócoli, Calabacín, Cebolla, Champiñón, Lechuga, Pepino, Pimiento, Tomate, Zanahoria...)", qty: 1, unit: "ración", pts: 0 },
+            { name: "Frutas naturales (Manzana, Pera, Plátano, Naranja...)", qty: 1, unit: "ud", pts: 0 },
+            { name: "Clara de huevo", qty: 1, unit: "ud", pts: 0 },
+            { name: "Refresco Light/Zero (Cola, Naranja, Limón)", qty: 1, unit: "lata", pts: 0 },
+            { name: "Yogur 0% natural (1 al día)", qty: 1, unit: "ud", pts: 0 },
+            { name: "Caldo casero desgrasado", qty: 1, unit: "ración", pts: 0 },
+            { name: "Edulcorante, Sacarina, Estevia", qty: 1, unit: "ración", pts: 0 },
+            { name: "Kétchup light", qty: 2, unit: "ct", pts: 0 },
+            { name: "Mermelada Light", qty: 2, unit: "ct", pts: 0 },
+            { name: "Salsa de soja", qty: 1, unit: "cd", pts: 0 },
+            
+            // APERITIVOS Y CONDIMENTOS
+            { name: "Aceitunas negras", qty: 4, unit: "ud", pts: 1 },
+            { name: "Aceitunas rellenas de anchoa", qty: 8, unit: "ud", pts: 1 },
             { name: "Aceitunas verdes", qty: 10, unit: "ud", pts: 1 },
+            { name: "Galletitas saladas cracker", qty: 2, unit: "ud", pts: 1.5 },
+            { name: "Kikos", qty: 30, unit: "g", pts: 3 },
             { name: "Nachos", qty: 50, unit: "g", pts: 5 },
+            { name: "Palomitas de Maíz con aceite y sal", qty: 10, unit: "g", pts: 1.5 },
             { name: "Patatas chips", qty: 30, unit: "g", pts: 4 },
-            { name: "Churros", qty: 4, unit: "ud", pts: 8 },
-            { name: "Croissant o Ensaimada", qty: 1, unit: "ud", pts: 5 },
-            { name: "Galletas tipo Maria", qty: 2, unit: "ud", pts: 1 },
-            { name: "Pan de molde", qty: 1, unit: "rebanada", pts: 1.5 },
-            { name: "Pan artesano o de barra", qty: 50, unit: "g", pts: 2 },
-            { name: "Arroz (crudo)", qty: 50, unit: "g", pts: 3 },
-            { name: "Pasta (cruda)", qty: 30, unit: "g", pts: 2 },
-            { name: "Lentejas o Garbanzos (crudos)", qty: 50, unit: "g", pts: 1.5 },
-            { name: "Patata", qty: 100, unit: "g", pts: 1 },
-            { name: "Cerveza rubia o negra", qty: 1, unit: "lata", pts: 2 },
-            { name: "Cerveza 0,0%", qty: 1, unit: "lata", pts: 1 },
-            { name: "Vino", qty: 1, unit: "copa", pts: 1.5 },
-            { name: "Pechuga de Pollo o Pavo", qty: 100, unit: "g", pts: 2 },
+            { name: "Kétchup normal", qty: 2, unit: "ct", pts: 1 },
+            { name: "Mayonesa normal", qty: 1, unit: "ct", pts: 1 },
+            { name: "Mayonesa Light", qty: 1, unit: "ct", pts: 0.5 },
+            { name: "Miel", qty: 1, unit: "cd", pts: 0.5 },
+            { name: "Mantequilla o Margarina", qty: 1, unit: "ct", pts: 1 },
+            { name: "Aceite de oliva o girasol", qty: 1, unit: "ct", pts: 1 },
+
+            // CARNES Y AVES
+            { name: "Ala de pollo", qty: 1, unit: "ud", pts: 2 },
+            { name: "Pechuga de Pollo o Pavo (sin piel)", qty: 100, unit: "g", pts: 2 },
+            { name: "Pavo sin piel", qty: 100, unit: "g", pts: 1.5 },
+            { name: "Salchicha de Pavo/Pollo", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Salchicha Frankfurt cerdo", qty: 1, unit: "ud", pts: 3 },
+            { name: "Entrecot de Ternera o Buey", qty: 120, unit: "g", pts: 5 },
             { name: "Bistec de Ternera", qty: 120, unit: "g", pts: 3 },
+            { name: "Carne magra picada (cerdo/ternera)", qty: 100, unit: "g", pts: 2 },
             { name: "Cinta de lomo de Cerdo", qty: 100, unit: "g", pts: 2 },
+            { name: "Costilla de Cerdo", qty: 100, unit: "g", pts: 7 },
+            { name: "Panceta de cerdo", qty: 50, unit: "g", pts: 9 },
+            { name: "Costilla de Cordero", qty: 100, unit: "g", pts: 5 },
             { name: "Huevo de gallina L", qty: 1, unit: "ud", pts: 2 },
+
+            // CHARCUTERÍA
+            { name: "Bacon", qty: 40, unit: "g", pts: 5 },
+            { name: "Chorizo curado", qty: 25, unit: "g", pts: 2.5 },
             { name: "Jamón cocido extra", qty: 50, unit: "g", pts: 1 },
             { name: "Jamón curado (sin grasa)", qty: 50, unit: "g", pts: 2 },
-            { name: "Chorizo curado", qty: 25, unit: "g", pts: 2.5 },
-            { name: "Salchicha Frankfurt", qty: 1, unit: "ud", pts: 3 },
+            { name: "Jamón curado (con grasa)", qty: 50, unit: "g", pts: 3.5 },
+            { name: "Lomo embuchado", qty: 30, unit: "g", pts: 2 },
+            { name: "Mortadela", qty: 50, unit: "g", pts: 3 },
+            { name: "Salami", qty: 25, unit: "g", pts: 3 },
+
+            // PESCADOS Y MARISCOS
             { name: "Atún fresco", qty: 100, unit: "g", pts: 3 },
-            { name: "Merluza o Bacalao fresco", qty: 120, unit: "g", pts: 2 },
-            { name: "Salmón fresco", qty: 100, unit: "g", pts: 4 },
-            { name: "Gambas o Langostinos", qty: 250, unit: "g", pts: 2 },
             { name: "Atún en conserva (natural)", qty: 1, unit: "lata", pts: 1 },
             { name: "Atún en conserva (aceite)", qty: 1, unit: "lata", pts: 2.5 },
-            { name: "Leche entera", qty: 1, unit: "vaso", pts: 3 },
-            { name: "Leche semidesnatada", qty: 1, unit: "vaso", pts: 2 },
-            { name: "Yogur entero de sabores", qty: 1, unit: "ud", pts: 2 },
+            { name: "Bacalao fresco", qty: 120, unit: "g", pts: 2 },
+            { name: "Calamares, sepia, chipirones", qty: 150, unit: "g", pts: 2 },
+            { name: "Gambas o Langostinos", qty: 250, unit: "g", pts: 2 },
+            { name: "Merluza fresca", qty: 120, unit: "g", pts: 2 },
+            { name: "Salmón fresco", qty: 100, unit: "g", pts: 4 },
+            { name: "Sardinas en lata (aceite)", qty: 1, unit: "lata", pts: 3 },
+            { name: "Palitos de cangrejo (Surimi)", qty: 4, unit: "ud", pts: 1 },
+            { name: "Fritura de pescado rebozado", qty: 150, unit: "g", pts: 7 },
+
+            // FÉCULAS, ARROCES, PAN
+            { name: "Arroz (crudo)", qty: 50, unit: "g", pts: 3 },
+            { name: "Pasta (cruda)", qty: 30, unit: "g", pts: 2 },
+            { name: "Garbanzos o Lentejas (crudos)", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Patata cocida", qty: 100, unit: "g", pts: 1 },
+            { name: "Patatas fritas caseras", qty: 100, unit: "g", pts: 8 },
+            { name: "Pan de barra blanca", qty: 50, unit: "g", pts: 2.5 },
+            { name: "Pan de barra integral", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Pan de molde", qty: 1, unit: "rebanada", pts: 1.5 },
+            { name: "Pan de hamburguesa", qty: 1, unit: "ud", pts: 3.5 },
+            { name: "Masa para Pizza", qty: 40, unit: "g", pts: 2.5 },
+
+            // LÁCTEOS Y BEBIDAS
+            { name: "Leche entera", qty: 200, unit: "ml", pts: 3 },
+            { name: "Leche semidesnatada", qty: 200, unit: "ml", pts: 2 },
+            { name: "Leche desnatada", qty: 200, unit: "ml", pts: 1 },
+            { name: "Yogur entero natural", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Yogur griego", qty: 1, unit: "ud", pts: 3 },
+            { name: "Bebida Vegetal (Soja, Avena...)", qty: 200, unit: "ml", pts: 3 },
+            { name: "Cerveza rubia o negra", qty: 1, unit: "lata", pts: 2 },
+            { name: "Cerveza 0,0%", qty: 1, unit: "lata", pts: 1 },
+            { name: "Vino blanco, tinto, rosado", qty: 1, unit: "copa", pts: 1.5 },
+            { name: "Zumo de frutas envasado", qty: 200, unit: "ml", pts: 1.5 },
+            { name: "Café / Té / Infusiones", qty: 1, unit: "taza", pts: 0 },
+
+            // QUESOS
             { name: "Queso Burgos", qty: 30, unit: "g", pts: 2 },
-            { name: "Queso curado o Parmesano", qty: 30, unit: "g", pts: 3 },
-            { name: "Aceite", qty: 1, unit: "ct", pts: 1 },
-            { name: "Mantequilla o Margarina", qty: 1, unit: "ct", pts: 1 },
-            { name: "Mayonesa", qty: 1, unit: "ct", pts: 1 },
-            { name: "Kétchup", qty: 2, unit: "ct", pts: 1 },
-            { name: "Tomate frito", qty: 3, unit: "cd", pts: 1 },
-            { name: "Mermelada con azúcar", qty: 1, unit: "ct", pts: 1.5 },
-            { name: "Miel", qty: 1, unit: "cd", pts: 0.5 }
+            { name: "Queso Curado, Manchego o Parmesano", qty: 30, unit: "g", pts: 3 },
+            { name: "Queso Edam, Gouda, Cheddar", qty: 30, unit: "g", pts: 2.5 },
+            { name: "Queso Roquefort / Cabrales / Azul", qty: 30, unit: "g", pts: 3.5 },
+            { name: "Loncha de queso tipo tranchete", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Crema de queso para untar", qty: 2, unit: "ct", pts: 2 },
+
+            // DULCES Y POSTRES
+            { name: "Azúcar o Fructosa", qty: 15, unit: "g", pts: 1 },
+            { name: "Chocolate con leche o blanco", qty: 15, unit: "g", pts: 3 },
+            { name: "Chocolate negro (>70% cacao)", qty: 15, unit: "g", pts: 1 },
+            { name: "Crema de cacao (Nutella/Nocilla)", qty: 15, unit: "g", pts: 1.5 },
+            { name: "Churros", qty: 4, unit: "ud", pts: 8 },
+            { name: "Croissant, Magdalena, Ensaimada", qty: 1, unit: "ud", pts: 5 },
+            { name: "Galleta tipo Maria", qty: 2, unit: "ud", pts: 1 },
+            { name: "Helado de sabores", qty: 1, unit: "bola", pts: 4 },
+            { name: "Flan de huevo", qty: 1, unit: "ud", pts: 3 },
+            { name: "Arroz con leche", qty: 1, unit: "ud", pts: 3 }
         ];
 
-        if(confirm(`¿Quieres importar el catálogo completo (${catalogo.length} alimentos) a tu lista?`)) {
+        if(confirm(`Se van a instalar ${catalogo.length} alimentos de tu libro.\n\n¿Deseas continuar?`)) {
             for(let f of catalogo) {
                 await addDoc(collection(db, "alimentos"), {
                     uid: userUID, name: f.name, isPdf: true, baseQty: f.qty, unit: f.unit, basePts: f.pts, cal: 0, fat: 0, gram: f.qty, pts: f.pts 
                 });
             }
-            alert("¡Gran Catálogo importado correctamente!");
+            alert("¡Todos los alimentos se han guardado en tu lista!");
         }
     };
 
@@ -284,7 +350,9 @@
             if (input) {
                 const consumido = parseFloat(input.replace(',', '.'));
                 if (!isNaN(consumido)) {
-                    const pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
+                    let pts = 0;
+                    if (f.basePts > 0) { pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2)); } // Regla de tres si tiene puntos
+                    
                     dayData.used += pts;
                     dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
                     await setDoc(doc(db, "consumos", userUID), dayData); window.tab('day');
@@ -308,7 +376,7 @@
     window.editDayItem = async (timestampId) => {
         const item = dayData.items.find(i => i.id === timestampId);
         const f = foods.find(x => x.id === item.originalId);
-        if(!f) return alert("El alimento original fue borrado.");
+        if(!f) return alert("El alimento original fue borrado de tu lista.");
         
         if (f.isPdf) {
             const oldQty = item.gr.match(/[\d.]+/)[0];
@@ -316,7 +384,9 @@
             if(input) {
                 const consumido = parseFloat(input.replace(',', '.'));
                 if (!isNaN(consumido)) {
-                    const nuevosPts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
+                    let nuevosPts = 0;
+                    if(f.basePts > 0) { nuevosPts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2)); }
+                    
                     dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = consumido + ' ' + f.unit; item.pts = nuevosPts;
                     await setDoc(doc(db, "consumos", userUID), dayData);
                 }
@@ -335,7 +405,7 @@
     window.addBuyItem = async () => { const val = document.getElementById('buy-input').value.trim(); if(val) { await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false, date: Date.now() }); document.getElementById('buy-input').value = ''; document.getElementById('buy-select').value=''; } };
     window.renderBuy = () => { const pen = document.getElementById('buy-list-pending'); const done = document.getElementById('buy-list-done'); pen.innerHTML = ''; done.innerHTML = ''; buyList.sort((a,b)=>b.date-a.date).forEach(i => { const h = `<div class="buy-item ${i.done?'done':''}"> <span style="flex:1" onclick="window.toggleBuy('${i.id}',${i.done})">${i.done?'✅':'▫️'} ${i.name}</span> <div><button onclick="window.editBuy('${i.id}','${i.name}')" style="background:none; border:none; color:orange;">✏️</button><button onclick="window.delBuy('${i.id}')" style="background:none; border:none; color:red; font-weight:bold;">✕</button></div></div>`; i.done ? done.innerHTML += h : pen.innerHTML += h; }); }
     window.toggleBuy = async (id, s) => await updateDoc(doc(db, "compras", id), { done: !s });
-    window.delBuy = async (id) => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "compras", id)); };
+    window.delBuy = async (id) => { if(confirm('¿Borrar de la compra?')) await deleteDoc(doc(db, "compras", id)); };
     window.editBuy = async (id, old) => { const n = prompt("Editar:", old); if(n) await updateDoc(doc(db, "compras", id), { name: n }); };
     window.renderHist = async () => { const snap = await getDocs(query(collection(db, "historiales"), where("uid", "==", userUID))); document.getElementById('hist-list').innerHTML = snap.docs.map(d => d.data()).sort((a,b)=>b.date.localeCompare(a.date)).map(h => `<div class="hist-item"><div class="hist-head" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display=='block'?'none':'block')"><span>📅 ${h.date}</span><span style="color:var(--primary)">${h.used.toFixed(1)} pts</span></div><div class="hist-body">Inicio: 22.0 | Gastado: ${h.used.toFixed(1)}<hr>${h.items.map(i=>`<div>• ${i.name} (${i.gr}): <b>${i.pts}</b></div>`).join('')}</div></div>`).join(''); };
     window.tab = (v) => { document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active')); document.getElementById('v-'+v).classList.add('active'); document.querySelectorAll('.tab').forEach(t => { if(t.innerText.toLowerCase().includes(v.substring(0,3))) t.classList.add('active'); }); if(v==='hist') window.renderHist(); };

@@ -45,13 +45,12 @@
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Contraseña">
         
-        <button class="btn btn-save" id="btnLogin" disabled style="background:#999;">Cargando...</button>
-        <button class="btn" id="btnSignup" disabled style="background:#eee; color:#999; margin-top:10px;">Cargando...</button>
+        <button class="btn btn-save" id="btnLogin">Entrar</button>
+        <button class="btn" id="btnSignup" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
 
         <div style="text-align:center; margin-top:25px;">
-            <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿Se ha atascado? Limpiar App</button>
+            <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿Atascado? Limpiar Memoria</button>
         </div>
-        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:10px;">Versión Definitiva 6.0</div>
     </div>
 </div>
 
@@ -63,27 +62,27 @@
 
     <div id="v-calc" class="view active">
         <div class="card">
-            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga casera">
-            <label>Calorías (100g)</label><input type="number" id="c-cal">
-            <label>Grasas (100g)</label><input type="number" id="c-fat">
-            <label>Gramos Porción</label><input type="number" id="c-gram">
+            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga">
+            <label>Calorías (100g)</label><input type="number" id="c-cal" oninput="window.doCalc()">
+            <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="window.doCalc()">
+            <label>Gramos Porción</label><input type="number" id="c-gram" oninput="window.doCalc()">
             <div class="res-container">
                 <span id="res-extra" style="font-size: 0.7rem; color: #666;">Extra: 0.000</span><br>
                 <span class="res-val" id="res-pts">0</span>
                 <span style="font-weight: bold; color: var(--primary)">PUNTOS</span>
             </div>
             <input type="hidden" id="edit-id">
-            <button class="btn btn-save" id="btnSaveFood">💾 Guardar en mi lista</button>
+            <button class="btn btn-save" onclick="window.saveFood()">💾 Guardar en mi lista</button>
         </div>
     </div>
 
     <div id="v-list" class="view">
         <div class="card">
             <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button id="btnImportar" style="flex:1; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Todo el Libro</button>
-                <button id="btnBorrarTodo" style="background:#F44336; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🗑️ Borrar</button>
+                <button onclick="window.importarLote()" style="flex:1; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Todo</button>
+                <button onclick="window.borrarTodo()" style="background:#F44336; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🗑️ Borrar Lista</button>
             </div>
-            <input type="text" id="search" placeholder="🔍 Buscar alimento...">
+            <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="window.renderList()">
             <div id="food-list">Cargando...</div>
         </div>
     </div>
@@ -97,7 +96,7 @@
         <div class="card">
             <label>RESUMEN DE HOY:</label>
             <div id="day-log"></div>
-            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" id="btnResetDay">Borrar todo el día</button>
+            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" onclick="window.resetDay()">Borrar todo el día</button>
         </div>
     </div>
 
@@ -106,10 +105,10 @@
             <label>Añadir a la lista</label>
             <div style="display:flex; gap:8px;">
                 <input type="text" id="buy-input" placeholder="Escribir producto..." style="margin:0;">
-                <button class="btn-add" id="btnAddBuy" style="padding:0 20px; font-size:1.5rem;">+</button>
+                <button class="btn-add" onclick="window.addBuyItem()" style="padding:0 20px; font-size:1.5rem;">+</button>
             </div>
             <label style="margin-top:10px;">O elegir de mis alimentos:</label>
-            <select id="buy-select"><option value="">-- Seleccionar --</option></select>
+            <select id="buy-select" onchange="document.getElementById('buy-input').value = this.value"><option value="">-- Seleccionar --</option></select>
         </div>
         <div class="card">
             <label>🛒 PENDIENTE</label><div id="buy-list-pending"></div>
@@ -120,111 +119,13 @@
     <div id="v-hist" class="view"><div class="card"><label>HISTORIAL POR DÍAS</label><div id="hist-list"></div></div></div>
 
     <nav class="tab-bar">
-        <div class="tab active" data-target="calc"><span>🧮</span>Calc</div>
-        <div class="tab" data-target="list"><span>📖</span>Lista</div>
-        <div class="tab" data-target="day"><span>🍴</span>Hoy</div>
-        <div class="tab" data-target="buy"><span>🛒</span>Compra</div>
-        <div class="tab" data-target="hist"><span>📈</span>Hist</div>
+        <div class="tab active" onclick="window.tab('calc')"><span>🧮</span>Calc</div>
+        <div class="tab" onclick="window.tab('list')"><span>📖</span>Lista</div>
+        <div class="tab" onclick="window.tab('day')"><span>🍴</span>Hoy</div>
+        <div class="tab" onclick="window.tab('buy')"><span>🛒</span>Compra</div>
+        <div class="tab" onclick="window.tab('hist')"><span>📈</span>Hist</div>
     </nav>
 </div>
 
 <script>
     function limpiarApp() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let r of registrations) { r.unregister(); }
-                window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
-            });
-        } else { window.location.reload(true); }
-    }
-</script>
-
-<script type="module">
-    try {
-        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js");
-        const { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-        const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
-
-        const firebaseConfig = {
-          apiKey: "AIzaSyAwv0RBFiAk-frLYK0LDyCyRduL2IVqOME",
-          authDomain: "mispuntos-ea353.firebaseapp.com",
-          projectId: "mispuntos-ea353",
-          storageBucket: "mispuntos-ea353.firebasestorage.app",
-          messagingSenderId: "762879678681",
-          appId: "1:762879678681:web:68a2bc4677e547a57b86c8"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
-        let userUID = null; let foods = []; let buyList = []; let dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
-
-        // ACTIVAR BOTONES AL CARGAR
-        const btnLogin = document.getElementById('btnLogin');
-        const btnSignup = document.getElementById('btnSignup');
-        btnLogin.innerText = "Entrar"; btnLogin.style.background = "var(--primary)"; btnLogin.disabled = false;
-        btnSignup.innerText = "Crear Cuenta Nueva"; btnSignup.style.color = "#333"; btnSignup.disabled = false;
-
-        btnLogin.addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value; const pass = document.getElementById('auth-pass').value;
-            if (!email || !pass) return alert("Escribe tu correo y contraseña.");
-            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Error al entrar: " + e.message); }
-        });
-
-        btnSignup.addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value; const pass = document.getElementById('auth-pass').value;
-            if (!email || !pass) return alert("Escribe tu correo y contraseña.");
-            try { await createUserWithEmailAndPassword(auth, email, pass); alert("Cuenta Creada!"); } catch (e) { alert("Error al crear: " + e.message); }
-        });
-
-        document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) { 
-                userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); 
-            } else { 
-                userUID = null; document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-content').style.display = 'none'; 
-            }
-        });
-
-        function iniciarApp() {
-            onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
-                foods = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderList();
-                const sel = document.getElementById('buy-select'); sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-                foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
-            });
-            onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if(data.date === new Date().toLocaleDateString()) { dayData = data; } 
-                    else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(doc(db, "consumos", userUID), dayData); }
-                    renderDay();
-                } else { setDoc(doc(db, "consumos", userUID), dayData); }
-            });
-            onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => { 
-                buyList = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderBuy(); 
-            });
-        }
-
-        const doCalc = () => {
-            const cal = parseFloat(document.getElementById('c-cal').value) || 0; const fat = parseFloat(document.getElementById('c-fat').value) || 0; const gr = parseFloat(document.getElementById('c-gram').value) || 0;
-            const extra = (cal / 50) + (fat / 12); document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3); document.getElementById('res-pts').innerText = ((extra * gr) / 100).toFixed(2);
-        };
-        document.getElementById('c-cal').addEventListener('input', doCalc);
-        document.getElementById('c-fat').addEventListener('input', doCalc);
-        document.getElementById('c-gram').addEventListener('input', doCalc);
-
-        document.getElementById('btnSaveFood').addEventListener('click', async () => {
-            const id = document.getElementById('edit-id').value;
-            const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
-            id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
-            document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; tab('list');
-        });
-
-        function renderList() {
-            const q = document.getElementById('search').value.toLowerCase();
-            const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
-            foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
-                let desc = f.isPdf ? `<span style="color:var(--primary); font-weight:bold;">${f.basePts} pts</span> por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
-                div.innerHTML += `<div class="item"><div class="info"><b>${

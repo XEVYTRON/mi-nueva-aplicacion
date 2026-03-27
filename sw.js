@@ -1,4 +1,4 @@
-const CACHE_NAME = 'puntos-cloud-v6';
+const CACHE_NAME = 'puntos-cloud-v7';
 const assets = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {

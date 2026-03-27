@@ -45,20 +45,20 @@
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Contraseña">
         
-        <button class="btn btn-save" onclick="window.entrar()">Entrar</button>
-        <button class="btn" onclick="window.registrar()" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
+        <button class="btn btn-save" id="btnLogin">Entrar</button>
+        <button class="btn" id="btnSignup" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
 
         <div style="text-align:center; margin-top:25px;">
             <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿No funciona? Limpiar App</button>
         </div>
-        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:10px;">Versión 4.0 (Catálogo Total)</div>
+        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:10px;">Versión 4.1 (Catálogo + Botones Arreglados)</div>
     </div>
 </div>
 
 <div id="app-content">
     <header>
         <span>Mis Puntos Pro</span>
-        <button onclick="window.salir()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
+        <button id="btnLogout" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
@@ -83,7 +83,6 @@
                 <button onclick="window.importarLote()" style="flex:1; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Libro</button>
                 <button onclick="window.borrarTodo()" style="background:#F44336; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🗑️ Borrar Todo</button>
             </div>
-            
             <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="window.renderList()">
             <div id="food-list">Cargando...</div>
         </div>
@@ -159,5 +158,70 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    window.entrar = async () => {
-        const email = document.getElementById('auth-email
+    // --- AQUÍ ESTÁ LA SOLUCIÓN: EL CABLEADO DIRECTO DE BOTONES ---
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-pass').value;
+        if (!email || !pass) return alert("Escribe tu correo y contraseña.");
+        try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Fallo al entrar: " + e.message); }
+    });
+
+    document.getElementById('btnSignup').addEventListener('click', async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-pass').value;
+        if (!email || !pass) return alert("Escribe tu correo y contraseña.");
+        try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Cuenta creada con éxito!"); } catch (e) { alert("Fallo al registrar: " + e.message); }
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', () => { signOut(auth); });
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) { 
+            userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); 
+        } else { 
+            userUID = null; document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-content').style.display = 'none'; 
+        }
+    });
+
+    // --- FUNCIÓN DE BORRADO MASIVO ---
+    window.borrarTodo = async () => {
+        if (foods.length === 0) return alert("Tu lista ya está vacía.");
+        
+        const confirmacion = confirm(`⚠️ ¡CUIDADO! ⚠️\n\nVas a borrar TODOS tus alimentos guardados (${foods.length} en total).\nEsta acción NO se puede deshacer.\n\n¿Estás completamente seguro?`);
+        
+        if (confirmacion) {
+            try {
+                await Promise.all(foods.map(f => deleteDoc(doc(db, "alimentos", f.id))));
+                alert("🗑️ ¡Tu lista ha sido borrada por completo!");
+            } catch (error) {
+                alert("Hubo un error al borrar: " + error.message);
+            }
+        }
+    };
+
+    // --- CATÁLOGO GIGANTE DEL PDF (COMPLETO) ---
+    window.importarLote = async () => {
+        const catalogo = [
+            { name: "Verduras, Hortalizas y Algas", qty: 1, unit: "ración", pts: 0 },
+            { name: "Frutas naturales (Manzana, Pera, Plátano...)", qty: 1, unit: "ud", pts: 0 },
+            { name: "Clara de huevo", qty: 1, unit: "ud", pts: 0 },
+            { name: "Refresco Light/Zero, Gaseosa", qty: 1, unit: "lata", pts: 0 },
+            { name: "Yogur 0% natural (1 al día)", qty: 1, unit: "ud", pts: 0 },
+            { name: "Caldo casero desgrasado / Cubito caldo", qty: 1, unit: "ración", pts: 0 },
+            { name: "Edulcorante, Sacarina, Estevia", qty: 1, unit: "ración", pts: 0 },
+            { name: "Kétchup light", qty: 2, unit: "ct", pts: 0 },
+            { name: "Mermelada Light", qty: 2, unit: "ct", pts: 0 },
+            { name: "Salsa de soja / Tabasco / Salsa Perrys", qty: 1, unit: "cd", pts: 0 },
+            { name: "Tomate natural triturado", qty: 1, unit: "cd", pts: 0 },
+            { name: "Vino o alcohol para cocinar", qty: 1, unit: "ración", pts: 0 },
+            { name: "Levadura / Harina (1 ct) / Maicena (2 ct)", qty: 1, unit: "ración", pts: 0 },
+            
+            { name: "Aceitunas negras", qty: 4, unit: "ud", pts: 1 },
+            { name: "Aceitunas rellenas de anchoa", qty: 8, unit: "ud", pts: 1 },
+            { name: "Aceitunas verdes", qty: 10, unit: "ud", pts: 1 },
+            { name: "Berenjenas de Almagro", qty: 4, unit: "ud", pts: 1 },
+            { name: "Galletitas saladas cracker", qty: 2, unit: "ud", pts: 1.5 },
+            { name: "Kikos", qty: 30, unit: "g", pts: 3 },
+            { name: "Nachos", qty: 50, unit: "g", pts: 5 },
+            { name: "Palomitas con aceite y sal", qty: 10, unit: "g", pts: 1.5 },
+            { name: "Palom

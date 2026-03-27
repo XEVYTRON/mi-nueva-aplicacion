@@ -1,6 +1,6 @@
 {
-  "name": "Puntos Pro",
-  "short_name": "Puntos Pro",
+  "name": "Mis Puntos Pro",
+  "short_name": "Puntos",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#F4F7F9",

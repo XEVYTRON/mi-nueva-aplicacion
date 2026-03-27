@@ -1,20 +1,22 @@
 {
-  "name": "Calculadora de Alimentos por Puntos",
-  "short_name": "PuntosAlimentos",
+  "name": "Puntos Pro",
+  "short_name": "Puntos Pro",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#f0f2f5",
-  "theme_color": "#4CAF50",
+  "background_color": "#F4F7F9",
+  "theme_color": "#7B1FA2",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192/4CAF50/ffffff?text=Puntos",
+      "src": "https://i.imgur.com/G9CjH8L.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://via.placeholder.com/512/4CAF50/ffffff?text=Puntos",
+      "src": "https://i.imgur.com/vH9J9Lp.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

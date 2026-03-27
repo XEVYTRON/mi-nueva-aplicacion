@@ -44,15 +44,15 @@
         <h2 style="text-align:center; color:var(--primary);">Acceso Privado</h2>
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Contraseña">
-        <button class="btn btn-save" onclick="window.handleLogin()">Entrar</button>
-        <button class="btn" onclick="window.handleSignup()" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
+        <button class="btn btn-save" id="btnLogin">Entrar</button>
+        <button class="btn" id="btnSignup" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
     </div>
 </div>
 
 <div id="app-content">
     <header>
         <span>Mis Puntos Pro</span>
-        <button onclick="window.handleLogout()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
+        <button id="btnLogout" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
@@ -138,24 +138,26 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    // --- ACCESO SEGURO Y DIRECTO ---
-    window.handleLogin = async () => {
+    // --- CABLEADO DIRECTO DE LOS BOTONES ---
+    document.getElementById('btnLogin').addEventListener('click', async () => {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
-        if (!email || !pass) return alert("Por favor, pon el email y la contraseña");
+        if (!email || !pass) return alert("Pon email y contraseña");
         try { await signInWithEmailAndPassword(auth, email, pass); } 
         catch (e) { alert("Error al entrar: " + e.message); }
-    };
+    });
 
-    window.handleSignup = async () => {
+    document.getElementById('btnSignup').addEventListener('click', async () => {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
-        if (!email || !pass) return alert("Por favor, pon un email y una contraseña");
+        if (!email || !pass) return alert("Pon email y contraseña");
         try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Cuenta creada!"); } 
-        catch (e) { alert("Error al registrar: " + e.message); }
-    };
+        catch (e) { alert("Error al crear: " + e.message); }
+    });
 
-    window.handleLogout = () => signOut(auth);
+    document.getElementById('btnLogout').addEventListener('click', () => {
+        signOut(auth);
+    });
 
     onAuthStateChanged(auth, (user) => {
         if (user) { userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); } 
@@ -163,29 +165,4 @@
     });
 
     // --- GRAN CATÁLOGO EXTRAÍDO DEL PDF ---
-    window.importarLote = async () => {
-        const catalogo = [
-            { name: "Todas las frutas naturales", qty: 1, unit: "ración", pts: 0 },
-            { name: "Verduras y Hortalizas", qty: 1, unit: "ración", pts: 0 },
-            { name: "Yogur 0% natural", qty: 1, unit: "ud", pts: 0 },
-            { name: "Refresco Light/Zero", qty: 1, unit: "lata", pts: 0 },
-            { name: "Aceitunas verdes", qty: 10, unit: "ud", pts: 1 },
-            { name: "Nachos", qty: 50, unit: "g", pts: 5 },
-            { name: "Patatas chips", qty: 30, unit: "g", pts: 4 },
-            { name: "Churros", qty: 4, unit: "ud", pts: 8 },
-            { name: "Croissant o Ensaimada", qty: 1, unit: "ud", pts: 5 },
-            { name: "Galletas tipo Maria", qty: 2, unit: "ud", pts: 1 },
-            { name: "Pan de molde", qty: 1, unit: "rebanada", pts: 1.5 },
-            { name: "Pan artesano o de barra", qty: 50, unit: "g", pts: 2 },
-            { name: "Arroz (crudo)", qty: 50, unit: "g", pts: 3 },
-            { name: "Pasta (cruda)", qty: 30, unit: "g", pts: 2 },
-            { name: "Lentejas o Garbanzos (crudos)", qty: 50, unit: "g", pts: 1.5 },
-            { name: "Patata", qty: 100, unit: "g", pts: 1 },
-            { name: "Cerveza rubia o negra", qty: 1, unit: "lata", pts: 2 },
-            { name: "Cerveza 0,0%", qty: 1, unit: "lata", pts: 1 },
-            { name: "Vino", qty: 1, unit: "copa", pts: 1.5 },
-            { name: "Pechuga de Pollo o Pavo", qty: 100, unit: "g", pts: 2 },
-            { name: "Bistec de Ternera", qty: 120, unit: "g", pts: 3 },
-            { name: "Cinta de lomo de Cerdo", qty: 100, unit: "g", pts: 2 },
-            { name: "Huevo de gallina L", qty: 1, unit: "ud", pts: 2 },
-            { name: "Jamón cocido extra
+    window.import

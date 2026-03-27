@@ -73,7 +73,7 @@
 
     <div id="v-list" class="view">
         <div class="card">
-            <button onclick="window.importarLote()" style="background:var(--accent); color:white; padding:10px; width:100%; border:none; border-radius:5px; margin-bottom:15px; font-weight:bold;">📥 Importar Lote 1 (Regla de Tres)</button>
+            <button onclick="window.importarLote()" style="background:var(--primary); color:white; padding:12px; width:100%; border:none; border-radius:8px; margin-bottom:15px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Gran Catálogo (PDF)</button>
             <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="window.renderList()">
             <div id="food-list">Cargando...</div>
         </div>
@@ -147,38 +147,72 @@
         else { userUID = null; document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-content').style.display = 'none'; }
     });
 
-    // --- IMPORTADOR INTELIGENTE (REGLA DE TRES) ---
+    // --- GRAN CATÁLOGO EXTRAÍDO DEL PDF ---
     window.importarLote = async () => {
         const catalogo = [
-            { name: "Aceitunas negras", qty: 4, unit: "ud", pts: 1 },
-            { name: "Aceitunas rellenas de anchoa", qty: 8, unit: "ud", pts: 1 },
-            { name: "Berenjenas de Almagro", qty: 4, unit: "ud", pts: 1 },
-            { name: "Galletitas saladas cracker", qty: 2, unit: "ud", pts: 1.5 },
-            { name: "Kikos", qty: 30, unit: "g", pts: 3 },
+            // Cero Puntos (Verduras, Frutas, Básicos)
+            { name: "Todas las frutas naturales", qty: 1, unit: "ración", pts: 0 },
+            { name: "Verduras y Hortalizas (Acelga, Ajo, etc)", qty: 1, unit: "ración", pts: 0 },
+            { name: "Yogur 0% natural", qty: 1, unit: "ud", pts: 0 },
+            { name: "Refresco Light/Zero", qty: 1, unit: "lata", pts: 0 },
+            // Aperitivos y Bollería
+            { name: "Aceitunas verdes", qty: 10, unit: "ud", pts: 1 },
             { name: "Nachos", qty: 50, unit: "g", pts: 5 },
-            { name: "Palomitas de Maíz con aceite y sal", qty: 10, unit: "g", pts: 1.5 },
             { name: "Patatas chips", qty: 30, unit: "g", pts: 4 },
-            { name: "Kétchup", qty: 2, unit: "ct", pts: 1 },
+            { name: "Churros", qty: 4, unit: "ud", pts: 8 },
+            { name: "Croissant, Magdalena o Ensaimada", qty: 1, unit: "ud", pts: 5 },
+            { name: "Galletas tipo Maria", qty: 2, unit: "ud", pts: 1 },
+            { name: "Pan de molde", qty: 1, unit: "rebanada", pts: 1.5 },
+            { name: "Pan artesano o de barra", qty: 50, unit: "g", pts: 2 },
+            // Féculas y Arroces
+            { name: "Arroz (crudo)", qty: 50, unit: "g", pts: 3 },
+            { name: "Pasta (cruda)", qty: 30, unit: "g", pts: 2 },
+            { name: "Lentejas o Garbanzos (crudos)", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Patata", qty: 100, unit: "g", pts: 1 },
+            // Bebidas
+            { name: "Cerveza rubia o negra", qty: 1, unit: "lata", pts: 2 },
+            { name: "Cerveza 0,0%", qty: 1, unit: "lata", pts: 1 },
+            { name: "Vino (blanco, rosado, tinto)", qty: 1, unit: "copa", pts: 1.5 },
+            // Carnes y Aves
+            { name: "Pechuga de Pollo o Pavo (sin piel)", qty: 100, unit: "g", pts: 2 },
+            { name: "Bistec de Ternera", qty: 120, unit: "g", pts: 3 },
+            { name: "Cinta de lomo de Cerdo", qty: 100, unit: "g", pts: 2 },
+            { name: "Huevo de gallina L", qty: 1, unit: "ud", pts: 2 },
+            // Charcutería
+            { name: "Jamón cocido extra", qty: 50, unit: "g", pts: 1 },
+            { name: "Jamón curado (sin grasa)", qty: 50, unit: "g", pts: 2 },
+            { name: "Chorizo curado", qty: 25, unit: "g", pts: 2.5 },
+            { name: "Salchicha Frankfurt", qty: 1, unit: "ud", pts: 3 },
+            // Pescados y Mariscos
+            { name: "Atún fresco", qty: 100, unit: "g", pts: 3 },
+            { name: "Merluza o Bacalao fresco", qty: 120, unit: "g", pts: 2 },
+            { name: "Salmón fresco", qty: 100, unit: "g", pts: 4 },
+            { name: "Gambas o Langostinos", qty: 250, unit: "g", pts: 2 },
+            { name: "Atún en conserva (natural)", qty: 1, unit: "lata", pts: 1 },
+            { name: "Atún en conserva (aceite)", qty: 1, unit: "lata", pts: 2.5 },
+            // Lácteos y Quesos
+            { name: "Leche entera", qty: 1, unit: "vaso", pts: 3 },
+            { name: "Leche semidesnatada", qty: 1, unit: "vaso", pts: 2 },
+            { name: "Yogur entero de sabores", qty: 1, unit: "ud", pts: 2 },
+            { name: "Queso Burgos", qty: 30, unit: "g", pts: 2 },
+            { name: "Queso curado o Parmesano", qty: 30, unit: "g", pts: 3 },
+            // Grasas, Ayudas Culinarias y Salsas
+            { name: "Aceite (oliva o girasol)", qty: 1, unit: "ct", pts: 1 },
+            { name: "Mantequilla o Margarina", qty: 1, unit: "ct", pts: 1 },
             { name: "Mayonesa", qty: 1, unit: "ct", pts: 1 },
+            { name: "Kétchup", qty: 2, unit: "ct", pts: 1 },
+            { name: "Tomate frito", qty: 3, unit: "cd", pts: 1 },
             { name: "Mermelada con azúcar", qty: 1, unit: "ct", pts: 1.5 },
-            { name: "Miel", qty: 1, unit: "cd", pts: 0.5 },
-            { name: "Nata líquida para montar 35% MG", qty: 1, unit: "cd", pts: 1.5 },
-            { name: "Ala de pollo", qty: 1, unit: "ud", pts: 2 },
-            { name: "Pavo sin piel", qty: 100, unit: "g", pts: 1.5 },
-            { name: "Pollo sin piel", qty: 100, unit: "g", pts: 2 },
-            { name: "Salchicha de Pollo", qty: 1, unit: "ud", pts: 2 },
-            { name: "Entrecot de Buey", qty: 120, unit: "g", pts: 5 },
-            { name: "Panceta de Cerdo", qty: 50, unit: "g", pts: 9 },
-            { name: "Costilla de Cordero", qty: 100, unit: "g", pts: 5 }
+            { name: "Miel", qty: 1, unit: "cd", pts: 0.5 }
         ];
 
-        if(confirm(`¿Importar ${catalogo.length} alimentos a tu lista?`)) {
+        if(confirm(`¿Quieres importar el catálogo completo (${catalogo.length} alimentos de tu libro) a tu lista?`)) {
             for(let f of catalogo) {
                 await addDoc(collection(db, "alimentos"), {
                     uid: userUID, name: f.name, isPdf: true, baseQty: f.qty, unit: f.unit, basePts: f.pts, cal: 0, fat: 0, gram: f.qty, pts: f.pts 
                 });
             }
-            alert("¡Lote importado correctamente!");
+            alert("¡Gran Catálogo importado correctamente!");
         }
     };
 
@@ -221,11 +255,10 @@
         });
     };
 
-    // --- CÁLCULO DE REGLA DE TRES AL COMER ---
     window.eat = async (id) => {
         const f = foods.find(x => x.id === id);
         if (f.isPdf) {
-            const input = prompt(`¿Qué cantidad de ${f.name} (${f.unit}) te vas a comer?\n(Calculadora: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
+            const input = prompt(`¿Qué cantidad de ${f.name} (${f.unit}) vas a comer?\n(Referencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
             if (input) {
                 const consumido = parseFloat(input.replace(',', '.'));
                 if (!isNaN(consumido)) {
@@ -250,7 +283,6 @@
         document.getElementById('day-log').innerHTML = dayData.items.map(i => `<div class="item"><div class="info"><b>${i.name}</b><br><small>${i.gr} = <b>${i.pts} pts</b></small></div><div class="actions"><button class="btn-edit" onclick="window.editDayItem(${i.id})">✏️</button><button class="btn-del" onclick="window.deleteDayItem(${i.id})">🗑️</button></div></div>`).join('');
     }
 
-    // --- EDITAR HOY CON REGLA DE TRES ---
     window.editDayItem = async (timestampId) => {
         const item = dayData.items.find(i => i.id === timestampId);
         const f = foods.find(x => x.id === item.originalId);
@@ -287,10 +319,7 @@
     window.renderHist = async () => { const snap = await getDocs(query(collection(db, "historiales"), where("uid", "==", userUID))); document.getElementById('hist-list').innerHTML = snap.docs.map(d => d.data()).sort((a,b)=>b.date.localeCompare(a.date)).map(h => `<div class="hist-item"><div class="hist-head" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display=='block'?'none':'block')"><span>📅 ${h.date}</span><span style="color:var(--primary)">${h.used.toFixed(1)} pts</span></div><div class="hist-body">Inicio: 22.0 | Gastado: ${h.used.toFixed(1)}<hr>${h.items.map(i=>`<div>• ${i.name} (${i.gr}): <b>${i.pts}</b></div>`).join('')}</div></div>`).join(''); };
     function tab(v) { document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active')); document.getElementById('v-'+v).classList.add('active'); document.getElementById('tab-'+v).classList.add('active'); if(v==='hist') window.renderHist(); }
     window.prepEdit = (id) => { const f = foods.find(x => x.id === id); document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal||0; document.getElementById('c-fat').value = f.fat||0; document.getElementById('c-gram').value = f.gram||0; document.getElementById('edit-id').value = f.id; tab('calc'); };
-    window.delFood = async (id) => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "alimentos", id)); };
-    document.getElementById('btnResetDay').onclick = async () => { if(confirm('¿Borrar hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
+    window.delFood = async (id) => { if(confirm('¿Borrar alimento permanentemente?')) await deleteDoc(doc(db, "alimentos", id)); };
+    document.getElementById('btnResetDay').onclick = async () => { if(confirm('¿Borrar todos los consumos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
     async function archiveDay(d) { await setDoc(doc(collection(db, "historiales"), userUID + "_" + d.date.replace(/\//g, "-")), { ...d, uid: userUID }); }
-    document.querySelectorAll('.tab').forEach(t => t.onclick = () => tab(t.id.replace('tab-','')));
-</script>
-</body>
-</html>
+    document.querySelectorAll('.tab').forEach(t => t.onclick = ()

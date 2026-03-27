@@ -44,30 +44,30 @@
         <h2 style="text-align:center; color:var(--primary);">Acceso Privado</h2>
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Contraseña">
-        <button class="btn btn-save" id="btnLogin">Entrar</button>
-        <button class="btn" id="btnSignup" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
+        <button class="btn btn-save" onclick="window.handleLogin()">Entrar</button>
+        <button class="btn" onclick="window.handleSignup()" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
     </div>
 </div>
 
 <div id="app-content">
     <header>
         <span>Mis Puntos Pro</span>
-        <button id="btnLogout" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
+        <button onclick="window.handleLogout()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
         <div class="card">
             <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga">
-            <label>Calorías (100g)</label><input type="number" id="c-cal" oninput="doCalc()">
-            <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="doCalc()">
-            <label>Gramos Porción</label><input type="number" id="c-gram" oninput="doCalc()">
+            <label>Calorías (100g)</label><input type="number" id="c-cal" oninput="window.doCalc()">
+            <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="window.doCalc()">
+            <label>Gramos Porción</label><input type="number" id="c-gram" oninput="window.doCalc()">
             <div class="res-container">
                 <span id="res-extra" style="font-size: 0.7rem; color: #666;">Extra: 0.000</span><br>
                 <span class="res-val" id="res-pts">0</span>
                 <span style="font-weight: bold; color: var(--primary)">PUNTOS</span>
             </div>
             <input type="hidden" id="edit-id">
-            <button class="btn btn-save" id="btnSaveFood">💾 Guardar en mi lista</button>
+            <button class="btn btn-save" onclick="window.saveFood()">💾 Guardar en mi lista</button>
         </div>
     </div>
 
@@ -88,7 +88,7 @@
         <div class="card">
             <label>RESUMEN DE HOY:</label>
             <div id="day-log"></div>
-            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" id="btnResetDay">Borrar todo el día</button>
+            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" onclick="window.resetDay()">Borrar todo el día</button>
         </div>
     </div>
 
@@ -97,10 +97,10 @@
             <label>Añadir a la lista</label>
             <div style="display:flex; gap:8px;">
                 <input type="text" id="buy-input" placeholder="Escribir producto..." style="margin:0;">
-                <button class="btn-add" id="btnAddBuy" style="padding:0 20px; font-size:1.5rem;">+</button>
+                <button class="btn-add" onclick="window.addBuyItem()" style="padding:0 20px; font-size:1.5rem;">+</button>
             </div>
             <label style="margin-top:10px;">O elegir de mis alimentos:</label>
-            <select id="buy-select"><option value="">-- Seleccionar --</option></select>
+            <select id="buy-select" onchange="document.getElementById('buy-input').value = this.value"><option value="">-- Seleccionar --</option></select>
         </div>
         <div class="card">
             <label>🛒 PENDIENTE</label><div id="buy-list-pending"></div>
@@ -111,11 +111,11 @@
     <div id="v-hist" class="view"><div class="card"><label>HISTORIAL POR DÍAS</label><div id="hist-list"></div></div></div>
 
     <nav class="tab-bar">
-        <div class="tab active" id="tab-calc"><span>🧮</span>Calc</div>
-        <div class="tab" id="tab-list"><span>📖</span>Lista</div>
-        <div class="tab" id="tab-day"><span>🍴</span>Hoy</div>
-        <div class="tab" id="tab-buy"><span>🛒</span>Compra</div>
-        <div class="tab" id="tab-hist"><span>📈</span>Hist</div>
+        <div class="tab active" onclick="window.tab('calc')"><span>🧮</span>Calc</div>
+        <div class="tab" onclick="window.tab('list')"><span>📖</span>Lista</div>
+        <div class="tab" onclick="window.tab('day')"><span>🍴</span>Hoy</div>
+        <div class="tab" onclick="window.tab('buy')"><span>🛒</span>Compra</div>
+        <div class="tab" onclick="window.tab('hist')"><span>📈</span>Hist</div>
     </nav>
 </div>
 
@@ -138,9 +138,24 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    document.getElementById('btnLogin').addEventListener('click', () => signInWithEmailAndPassword(auth, document.getElementById('auth-email').value, document.getElementById('auth-pass').value).catch(e => alert(e.message)));
-    document.getElementById('btnSignup').addEventListener('click', () => createUserWithEmailAndPassword(auth, document.getElementById('auth-email').value, document.getElementById('auth-pass').value).catch(e => alert(e.message)));
-    document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
+    // --- ACCESO SEGURO Y DIRECTO ---
+    window.handleLogin = async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-pass').value;
+        if (!email || !pass) return alert("Por favor, pon el email y la contraseña");
+        try { await signInWithEmailAndPassword(auth, email, pass); } 
+        catch (e) { alert("Error al entrar: " + e.message); }
+    };
+
+    window.handleSignup = async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-pass').value;
+        if (!email || !pass) return alert("Por favor, pon un email y una contraseña");
+        try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Cuenta creada!"); } 
+        catch (e) { alert("Error al registrar: " + e.message); }
+    };
+
+    window.handleLogout = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
         if (user) { userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); } 
@@ -150,176 +165,27 @@
     // --- GRAN CATÁLOGO EXTRAÍDO DEL PDF ---
     window.importarLote = async () => {
         const catalogo = [
-            // Cero Puntos (Verduras, Frutas, Básicos)
             { name: "Todas las frutas naturales", qty: 1, unit: "ración", pts: 0 },
-            { name: "Verduras y Hortalizas (Acelga, Ajo, etc)", qty: 1, unit: "ración", pts: 0 },
+            { name: "Verduras y Hortalizas", qty: 1, unit: "ración", pts: 0 },
             { name: "Yogur 0% natural", qty: 1, unit: "ud", pts: 0 },
             { name: "Refresco Light/Zero", qty: 1, unit: "lata", pts: 0 },
-            // Aperitivos y Bollería
             { name: "Aceitunas verdes", qty: 10, unit: "ud", pts: 1 },
             { name: "Nachos", qty: 50, unit: "g", pts: 5 },
             { name: "Patatas chips", qty: 30, unit: "g", pts: 4 },
             { name: "Churros", qty: 4, unit: "ud", pts: 8 },
-            { name: "Croissant, Magdalena o Ensaimada", qty: 1, unit: "ud", pts: 5 },
+            { name: "Croissant o Ensaimada", qty: 1, unit: "ud", pts: 5 },
             { name: "Galletas tipo Maria", qty: 2, unit: "ud", pts: 1 },
             { name: "Pan de molde", qty: 1, unit: "rebanada", pts: 1.5 },
             { name: "Pan artesano o de barra", qty: 50, unit: "g", pts: 2 },
-            // Féculas y Arroces
             { name: "Arroz (crudo)", qty: 50, unit: "g", pts: 3 },
             { name: "Pasta (cruda)", qty: 30, unit: "g", pts: 2 },
             { name: "Lentejas o Garbanzos (crudos)", qty: 50, unit: "g", pts: 1.5 },
             { name: "Patata", qty: 100, unit: "g", pts: 1 },
-            // Bebidas
             { name: "Cerveza rubia o negra", qty: 1, unit: "lata", pts: 2 },
             { name: "Cerveza 0,0%", qty: 1, unit: "lata", pts: 1 },
-            { name: "Vino (blanco, rosado, tinto)", qty: 1, unit: "copa", pts: 1.5 },
-            // Carnes y Aves
-            { name: "Pechuga de Pollo o Pavo (sin piel)", qty: 100, unit: "g", pts: 2 },
+            { name: "Vino", qty: 1, unit: "copa", pts: 1.5 },
+            { name: "Pechuga de Pollo o Pavo", qty: 100, unit: "g", pts: 2 },
             { name: "Bistec de Ternera", qty: 120, unit: "g", pts: 3 },
             { name: "Cinta de lomo de Cerdo", qty: 100, unit: "g", pts: 2 },
             { name: "Huevo de gallina L", qty: 1, unit: "ud", pts: 2 },
-            // Charcutería
-            { name: "Jamón cocido extra", qty: 50, unit: "g", pts: 1 },
-            { name: "Jamón curado (sin grasa)", qty: 50, unit: "g", pts: 2 },
-            { name: "Chorizo curado", qty: 25, unit: "g", pts: 2.5 },
-            { name: "Salchicha Frankfurt", qty: 1, unit: "ud", pts: 3 },
-            // Pescados y Mariscos
-            { name: "Atún fresco", qty: 100, unit: "g", pts: 3 },
-            { name: "Merluza o Bacalao fresco", qty: 120, unit: "g", pts: 2 },
-            { name: "Salmón fresco", qty: 100, unit: "g", pts: 4 },
-            { name: "Gambas o Langostinos", qty: 250, unit: "g", pts: 2 },
-            { name: "Atún en conserva (natural)", qty: 1, unit: "lata", pts: 1 },
-            { name: "Atún en conserva (aceite)", qty: 1, unit: "lata", pts: 2.5 },
-            // Lácteos y Quesos
-            { name: "Leche entera", qty: 1, unit: "vaso", pts: 3 },
-            { name: "Leche semidesnatada", qty: 1, unit: "vaso", pts: 2 },
-            { name: "Yogur entero de sabores", qty: 1, unit: "ud", pts: 2 },
-            { name: "Queso Burgos", qty: 30, unit: "g", pts: 2 },
-            { name: "Queso curado o Parmesano", qty: 30, unit: "g", pts: 3 },
-            // Grasas, Ayudas Culinarias y Salsas
-            { name: "Aceite (oliva o girasol)", qty: 1, unit: "ct", pts: 1 },
-            { name: "Mantequilla o Margarina", qty: 1, unit: "ct", pts: 1 },
-            { name: "Mayonesa", qty: 1, unit: "ct", pts: 1 },
-            { name: "Kétchup", qty: 2, unit: "ct", pts: 1 },
-            { name: "Tomate frito", qty: 3, unit: "cd", pts: 1 },
-            { name: "Mermelada con azúcar", qty: 1, unit: "ct", pts: 1.5 },
-            { name: "Miel", qty: 1, unit: "cd", pts: 0.5 }
-        ];
-
-        if(confirm(`¿Quieres importar el catálogo completo (${catalogo.length} alimentos de tu libro) a tu lista?`)) {
-            for(let f of catalogo) {
-                await addDoc(collection(db, "alimentos"), {
-                    uid: userUID, name: f.name, isPdf: true, baseQty: f.qty, unit: f.unit, basePts: f.pts, cal: 0, fat: 0, gram: f.qty, pts: f.pts 
-                });
-            }
-            alert("¡Gran Catálogo importado correctamente!");
-        }
-    };
-
-    function iniciarApp() {
-        if (!userUID) return;
-        onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
-            foods = snap.docs.map(d => ({ id: d.id, ...d.data() })); window.renderList();
-            const sel = document.getElementById('buy-select'); sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-            foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
-        });
-        onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if(data.date === new Date().toLocaleDateString()) { dayData = data; } else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(doc(db, "consumos", userUID), dayData); }
-                renderDay();
-            } else { setDoc(doc(db, "consumos", userUID), dayData); }
-        });
-        onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => { buyList = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderBuy(); });
-    }
-
-    window.doCalc = () => {
-        const cal = parseFloat(document.getElementById('c-cal').value) || 0; const fat = parseFloat(document.getElementById('c-fat').value) || 0; const gr = parseFloat(document.getElementById('c-gram').value) || 0;
-        const extra = (cal / 50) + (fat / 12); document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3); document.getElementById('res-pts').innerText = ((extra * gr) / 100).toFixed(2);
-    };
-
-    document.getElementById('btnSaveFood').addEventListener('click', async () => {
-        const id = document.getElementById('edit-id').value;
-        const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
-        id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
-        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; tab('list');
-    });
-
-    window.renderList = () => {
-        const q = document.getElementById('search').value.toLowerCase();
-        const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
-        foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
-            let desc = f.isPdf ? `${f.basePts} pts por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
-            div.innerHTML += `<div class="item"><div class="info"><b>${f.name}</b><br><small style="color:#666">${desc}</small></div>
-                <div class="actions"><button class="btn-edit" onclick="window.prepEdit('${f.id}')">✏️</button><button class="btn-add" onclick="window.eat('${f.id}')">➕</button><button class="btn-del" onclick="window.delFood('${f.id}')">🗑️</button></div></div>`;
-        });
-    };
-
-    window.eat = async (id) => {
-        const f = foods.find(x => x.id === id);
-        if (f.isPdf) {
-            const input = prompt(`¿Qué cantidad de ${f.name} (${f.unit}) vas a comer?\n(Referencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
-            if (input) {
-                const consumido = parseFloat(input.replace(',', '.'));
-                if (!isNaN(consumido)) {
-                    const pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
-                    dayData.used += pts;
-                    dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
-                    await setDoc(doc(db, "consumos", userUID), dayData); tab('day');
-                }
-            }
-        } else {
-            const gr = prompt(`¿Cuántos gramos de ${f.name}?`, f.gram);
-            if(gr) {
-                const extra = (f.cal / 50) + (f.fat / 12); const pts = parseFloat(((extra * gr) / 100).toFixed(2));
-                dayData.used += pts; dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: gr + 'g', originalId: f.id });
-                await setDoc(doc(db, "consumos", userUID), dayData); tab('day');
-            }
-        }
-    };
-
-    function renderDay() {
-        document.getElementById('d-rem').innerText = (22 - dayData.used).toFixed(1); document.getElementById('d-used').innerText = dayData.used.toFixed(1);
-        document.getElementById('day-log').innerHTML = dayData.items.map(i => `<div class="item"><div class="info"><b>${i.name}</b><br><small>${i.gr} = <b>${i.pts} pts</b></small></div><div class="actions"><button class="btn-edit" onclick="window.editDayItem(${i.id})">✏️</button><button class="btn-del" onclick="window.deleteDayItem(${i.id})">🗑️</button></div></div>`).join('');
-    }
-
-    window.editDayItem = async (timestampId) => {
-        const item = dayData.items.find(i => i.id === timestampId);
-        const f = foods.find(x => x.id === item.originalId);
-        if(!f) return alert("El alimento original fue borrado.");
-        
-        if (f.isPdf) {
-            const oldQty = item.gr.match(/[\d.]+/)[0];
-            const input = prompt(`Modificar cantidad en ${f.unit}:`, oldQty);
-            if(input) {
-                const consumido = parseFloat(input.replace(',', '.'));
-                if (!isNaN(consumido)) {
-                    const nuevosPts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
-                    dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = consumido + ' ' + f.unit; item.pts = nuevosPts;
-                    await setDoc(doc(db, "consumos", userUID), dayData);
-                }
-            }
-        } else {
-            const nuevoGr = prompt(`Modificar gramos:`, item.gr.replace('g', ''));
-            if(nuevoGr) {
-                const extra = (f.cal / 50) + (f.fat / 12); const nuevosPts = parseFloat(((extra * nuevoGr) / 100).toFixed(2));
-                dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = nuevoGr + 'g'; item.pts = nuevosPts;
-                await setDoc(doc(db, "consumos", userUID), dayData);
-            }
-        }
-    };
-
-    window.deleteDayItem = async (tid) => { const i = dayData.items.find(x => x.id === tid); dayData.used -= i.pts; dayData.items = dayData.items.filter(x => x.id !== tid); await setDoc(doc(db, "consumos", userUID), dayData); };
-    document.getElementById('btnAddBuy').addEventListener('click', async () => { const val = document.getElementById('buy-input').value.trim(); if(val) { await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false, date: Date.now() }); document.getElementById('buy-input').value = ''; document.getElementById('buy-select').value=''; } });
-    document.getElementById('buy-select').onchange = (e) => document.getElementById('buy-input').value = e.target.value;
-    function renderBuy() { const pen = document.getElementById('buy-list-pending'); const done = document.getElementById('buy-list-done'); pen.innerHTML = ''; done.innerHTML = ''; buyList.sort((a,b)=>b.date-a.date).forEach(i => { const h = `<div class="buy-item ${i.done?'done':''}"> <span style="flex:1" onclick="window.toggleBuy('${i.id}',${i.done})">${i.done?'✅':'▫️'} ${i.name}</span> <div><button onclick="window.editBuy('${i.id}','${i.name}')" style="background:none; border:none; color:orange;">✏️</button><button onclick="window.delBuy('${i.id}')" style="background:none; border:none; color:red; font-weight:bold;">✕</button></div></div>`; i.done ? done.innerHTML += h : pen.innerHTML += h; }); }
-    window.toggleBuy = async (id, s) => await updateDoc(doc(db, "compras", id), { done: !s });
-    window.delBuy = async (id) => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "compras", id)); };
-    window.editBuy = async (id, old) => { const n = prompt("Editar:", old); if(n) await updateDoc(doc(db, "compras", id), { name: n }); };
-    window.renderHist = async () => { const snap = await getDocs(query(collection(db, "historiales"), where("uid", "==", userUID))); document.getElementById('hist-list').innerHTML = snap.docs.map(d => d.data()).sort((a,b)=>b.date.localeCompare(a.date)).map(h => `<div class="hist-item"><div class="hist-head" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display=='block'?'none':'block')"><span>📅 ${h.date}</span><span style="color:var(--primary)">${h.used.toFixed(1)} pts</span></div><div class="hist-body">Inicio: 22.0 | Gastado: ${h.used.toFixed(1)}<hr>${h.items.map(i=>`<div>• ${i.name} (${i.gr}): <b>${i.pts}</b></div>`).join('')}</div></div>`).join(''); };
-    function tab(v) { document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active')); document.getElementById('v-'+v).classList.add('active'); document.getElementById('tab-'+v).classList.add('active'); if(v==='hist') window.renderHist(); }
-    window.prepEdit = (id) => { const f = foods.find(x => x.id === id); document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal||0; document.getElementById('c-fat').value = f.fat||0; document.getElementById('c-gram').value = f.gram||0; document.getElementById('edit-id').value = f.id; tab('calc'); };
-    window.delFood = async (id) => { if(confirm('¿Borrar alimento permanentemente?')) await deleteDoc(doc(db, "alimentos", id)); };
-    document.getElementById('btnResetDay').onclick = async () => { if(confirm('¿Borrar todos los consumos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
-    async function archiveDay(d) { await setDoc(doc(collection(db, "historiales"), userUID + "_" + d.date.replace(/\//g, "-")), { ...d, uid: userUID }); }
-    document.querySelectorAll('.tab').forEach(t => t.onclick = ()
+            { name: "Jamón cocido extra

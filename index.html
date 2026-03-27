@@ -3,31 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mis Puntos Privados</title>
+    <title>Mis Puntos Pro</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7B1FA2">
     <style>
-       :root { --primary: #7B1FA2; --bg: #f4f7f9; --card: #ffffff; }
+        :root { --primary: #7B1FA2; --bg: #f4f7f9; --card: #ffffff; --accent: #CE93D8; }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 80px; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .card { background: var(--card); margin: 12px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         label { display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px; font-weight: 600; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        .res-container { text-align: center; background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 2px solid var(--primary); }
-        .res-val { font-size: 2.2rem; font-weight: bold; color: var(--primary); display: block; }
-        .btn { border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; margin-bottom: 10px; }
+        
+        /* Puntos Hoy Resaltados */
+        .res-container { text-align: center; background: #f3e5f5; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 2px solid var(--primary); }
+        .res-val { font-size: 3.5rem; font-weight: 900; color: var(--primary); display: block; line-height: 1; margin: 10px 0; }
+        
+        .btn { border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; margin-bottom: 10px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-save { background: var(--primary); color: white; }
-        .btn-edit { background: #FF9800; color: white; width: auto; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
-        .btn-add { background: #4CAF50; color: white; width: auto; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
-        .btn-del { background: #F44336; color: white; width: auto; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
-        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; height: 65px; z-index: 100; }
-        .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; color: #888; cursor: pointer; }
-        .tab.active { color: var(--primary); border-top: 3px solid var(--primary); }
-        .view { display: none; padding: 5px; }
+        .btn-edit { background: #FF9800; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
+        .btn-add { background: #4CAF50; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
+        .btn-del { background: #F44336; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
+        
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; height: 65px; z-index: 100; overflow-x: auto; }
+        .tab { flex: 1; min-width: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; color: #888; cursor: pointer; }
+        .tab.active { color: var(--primary); border-top: 3px solid var(--primary); font-weight: bold; }
+        
+        .view { display: none; animation: fadeIn 0.3s; }
         .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         .item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .actions { display: flex; gap: 5px; }
-        .daily-circle { width: 100px; height: 100px; border: 6px solid var(--primary); border-radius: 50%; margin: 10px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hist-item { border: 1px solid #eee; margin-bottom: 10px; border-radius: 8px; overflow: hidden; }
+        .hist-head { background: #f8f9fa; padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+        .hist-body { padding: 10px; display: none; background: white; font-size: 0.85rem; }
+        
+        .buy-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dotted #ccc; }
+        .buy-item.done span { text-decoration: line-through; color: #888; }
+        
         #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; padding: 20px; }
         #app-content { display: none; }
     </style>
@@ -46,58 +59,85 @@
 
 <div id="app-content">
     <header>
-        <span>Puntos Pro</span>
-        <button onclick="logout()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration:underline;">Salir</button>
+        <span>Mis Puntos Pro</span>
+        <button onclick="logout()" style="background:none; border:none; color:white; font-size:0.8rem;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
         <div class="card">
-            <label>Alimento</label><input type="text" id="c-name" placeholder="Ej: Pollo">
+            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga">
             <label>Calorías (100g)</label><input type="number" id="c-cal" oninput="doCalc()">
             <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="doCalc()">
             <label>Gramos Porción</label><input type="number" id="c-gram" oninput="doCalc()">
             <div class="res-container">
-                <span id="res-extra" style="font-size: 0.7rem; color: #666;">Extra: 0</span><br>
+                <span id="res-extra" style="font-size: 0.7rem; color: #666;">Valor Extra: 0</span><br>
                 <span class="res-val" id="res-pts">0</span>
+                <span style="font-weight: bold; color: var(--primary)">PUNTOS</span>
             </div>
             <input type="hidden" id="edit-id">
-            <button class="btn btn-save" onclick="save()">💾 Guardar en mi Nube</button>
+            <button class="btn btn-save" onclick="save()">💾 Guardar en mi lista de alimentos</button>
         </div>
     </div>
 
     <div id="v-list" class="view">
         <div class="card">
-            <input type="text" id="search" placeholder="🔍 Buscar en mis alimentos..." oninput="renderList()">
+            <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="renderList()">
             <div id="food-list">Cargando...</div>
         </div>
     </div>
 
     <div id="v-day" class="view">
         <div class="card" style="text-align:center;">
-            <label>RESTANTES HOY</label>
-            <div class="daily-circle"><span id="d-rem">22</span></div>
-            <p>Consumido: <b id="d-used">0</b> pts</p>
+            <label>PUNTOS RESTANTES HOY</label>
+            <span class="res-val" id="d-rem" style="font-size: 5rem;">22</span>
+            <p>Has gastado: <b id="d-used">0</b> de 22 pts</p>
         </div>
         <div class="card">
-            <label>LO QUE HAS COMIDO HOY:</label>
+            <label>RESUMEN DEL DÍA:</label>
             <div id="day-log"></div>
-            <button class="btn" style="background:#eee; font-size:0.8rem; margin-top:15px;" onclick="resetDay()">Reiniciar Día (Cero Puntos)</button>
+            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:15px;" onclick="resetDay()">Limpiar Día</button>
         </div>
     </div>
 
-    <div id="v-hist" class="view"><div class="card"><div id="hist-list"></div></div></div>
+    <div id="v-buy" class="view">
+        <div class="card">
+            <label>Añadir a la compra</label>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="buy-input" placeholder="Ej: Leche o elegir de lista..." style="margin:0;">
+                <button class="btn-add" onclick="addBuyItem()" style="padding:10px 20px;">+</button>
+            </div>
+            <select id="buy-select" onchange="document.getElementById('buy-input').value = this.value" style="width:100%; margin-top:10px; padding:8px; border-radius:8px;">
+                <option value="">-- Seleccionar de mis alimentos --</option>
+            </select>
+        </div>
+        <div class="card">
+            <label>🛒 PENDIENTE</label>
+            <div id="buy-list-pending"></div>
+            <hr>
+            <label>✅ COMPRADO</label>
+            <div id="buy-list-done"></div>
+        </div>
+    </div>
+
+    <div id="v-hist" class="view">
+        <div class="card">
+            <label>DÍAS ANTERIORES</label>
+            <div id="hist-list"></div>
+        </div>
+    </div>
 
     <nav class="tab-bar">
-        <div class="tab active" onclick="tab('calc')">🧮Calc</div>
-        <div class="tab" onclick="tab('list')">📖Lista</div>
-        <div class="tab" onclick="tab('day')">🍴Hoy</div>
-        <div class="tab" onclick="tab('hist')">📈Hist</div>
+        <div class="tab active" onclick="tab('calc')"><span>🧮</span>Calc</div>
+        <div class="tab" onclick="tab('list')"><span>📖</span>Lista</div>
+        <div class="tab" onclick="tab('day')"><span>🍴</span>Hoy</div>
+        <div class="tab" onclick="tab('buy')"><span>🛒</span>Compra</div>
+        <div class="tab" onclick="tab('hist')"><span>📈</span>Hist</div>
     </nav>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -114,6 +154,7 @@
     const auth = getAuth(app);
     let userUID = null;
     let foods = [];
+    let buyList = [];
     let dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
     onAuthStateChanged(auth, (user) => {
@@ -136,6 +177,7 @@
         onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
             foods = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderList();
+            updateBuySelect();
         });
 
         onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
@@ -146,6 +188,11 @@
                 renderDay();
             } else { setDoc(doc(db, "consumos", userUID), dayData); }
         });
+
+        onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => {
+            buyList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderBuy();
+        });
     }
 
     window.doCalc = () => {
@@ -154,7 +201,7 @@
         const gr = parseFloat(document.getElementById('c-gram').value) || 0;
         const extra = (cal / 50) + (fat / 12);
         const pts = (extra * gr) / 100;
-        document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3);
+        document.getElementById('res-extra').innerText = "Valor Extra: " + extra.toFixed(3);
         document.getElementById('res-pts').innerText = pts.toFixed(2);
     };
 
@@ -192,7 +239,7 @@
 
     window.eat = async (id) => {
         const f = foods.find(x => x.id === id);
-        const gr = prompt(`¿Cuántos gramos de ${f.name} has comido?`, f.gram);
+        const gr = prompt(`¿Gramos de ${f.name}?`, f.gram);
         if(gr) {
             const extra = (f.cal / 50) + (f.fat / 12);
             const pts = parseFloat(((extra * gr) / 100).toFixed(2));
@@ -217,62 +264,98 @@
             </div>`).join('');
     };
 
+    // COMPRA LOGICA
+    window.addBuyItem = async () => {
+        const val = document.getElementById('buy-input').value;
+        if(!val) return;
+        await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false });
+        document.getElementById('buy-input').value = '';
+    };
+
+    window.renderBuy = () => {
+        const pen = document.getElementById('buy-list-pending');
+        const done = document.getElementById('buy-list-done');
+        pen.innerHTML = ''; done.innerHTML = '';
+        buyList.forEach(i => {
+            const html = `<div class="buy-item ${i.done ? 'done' : ''}">
+                <input type="checkbox" ${i.done ? 'checked' : ''} onclick="toggleBuy('${i.id}', ${i.done})">
+                <span style="flex:1" onclick="editBuy('${i.id}', '${i.name}')">${i.name}</span>
+                <button onclick="delBuy('${i.id}')" style="background:none; border:none; color:red;">✕</button>
+            </div>`;
+            if(i.done) done.innerHTML += html;
+            else pen.innerHTML += html;
+        });
+    };
+
+    window.toggleBuy = async (id, current) => await updateDoc(doc(db, "compras", id), { done: !current });
+    window.delBuy = async (id) => await deleteDoc(doc(db, "compras", id));
+    window.editBuy = async (id, old) => {
+        const n = prompt("Editar producto:", old);
+        if(n) await updateDoc(doc(db, "compras", id), { name: n });
+    };
+    function updateBuySelect() {
+        const sel = document.getElementById('buy-select');
+        sel.innerHTML = '<option value="">-- Seleccionar de mis alimentos --</option>';
+        foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
+    }
+
+    // HISTORIAL MEJORADO
+    async function renderHist() {
+        const q = query(collection(db, "historiales"), where("uid", "==", userUID));
+        const snap = await getDocs(q);
+        const hist = snap.docs.map(d => d.data()).sort((a,b) => b.date.localeCompare(a.date));
+        const container = document.getElementById('hist-list');
+        container.innerHTML = hist.map(h => `
+            <div class="hist-item">
+                <div class="hist-head" onclick="this.nextElementSibling.style.display = (this.nextElementSibling.style.display == 'block' ? 'none' : 'block')">
+                    <span>${h.date}</span>
+                    <span style="color:var(--primary)">${h.used.toFixed(1)} pts</span>
+                </div>
+                <div class="hist-body">
+                    <p><b>Resumen:</b><br>• Comienzo: 22.0 pts<br>• Gastado: ${h.used.toFixed(1)} pts<br>• Sobrante: ${(22 - h.used).toFixed(1)} pts</p>
+                    <hr>
+                    ${h.items.map(i => `<div>• ${i.name} (${i.gr}g): ${i.pts} pts</div>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // FUNCIONES AUXILIARES
     window.editDayItem = async (timestampId) => {
         const item = dayData.items.find(i => i.id === timestampId);
-        const nuevoGr = prompt(`Modificar gramos para ${item.name}:`, item.gr);
-        if(nuevoGr && nuevoGr !== item.gr) {
+        const nuevoGr = prompt(`Modificar gramos:`, item.gr);
+        if(nuevoGr) {
             const f = foods.find(x => x.id === item.originalId);
-            if(!f) { alert("No se puede recalcular: el alimento original fue borrado de la lista."); return; }
-            
             const extra = (f.cal / 50) + (f.fat / 12);
             const nuevosPts = parseFloat(((extra * nuevoGr) / 100).toFixed(2));
-            
             dayData.used = (dayData.used - item.pts) + nuevosPts;
-            item.gr = nuevoGr;
-            item.pts = nuevosPts;
-            
+            item.gr = nuevoGr; item.pts = nuevosPts;
             await setDoc(doc(db, "consumos", userUID), dayData);
         }
     };
-
     window.deleteDayItem = async (timestampId) => {
-        if(confirm("¿Eliminar este alimento del día? Se devolverán los puntos.")) {
-            const item = dayData.items.find(i => i.id === timestampId);
-            dayData.used -= item.pts;
-            dayData.items = dayData.items.filter(i => i.id !== timestampId);
-            await setDoc(doc(db, "consumos", userUID), dayData);
-        }
+        const item = dayData.items.find(i => i.id === timestampId);
+        dayData.used -= item.pts;
+        dayData.items = dayData.items.filter(i => i.id !== timestampId);
+        await setDoc(doc(db, "consumos", userUID), dayData);
     };
-
     window.prepEdit = (id) => {
         const f = foods.find(x => x.id === id);
         document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal;
         document.getElementById('c-fat').value = f.fat; document.getElementById('c-gram').value = f.gram;
         document.getElementById('edit-id').value = f.id; window.doCalc(); tab('calc');
     };
-
-    window.delFood = async (id) => { if(confirm('¿Borrar de tu lista permanente?')) await deleteDoc(doc(db, "alimentos", id)); };
-    window.resetDay = async () => { if(confirm('¿Reiniciar todo el día a cero?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
-
-    async function archiveDay(data) {
-        const histRef = doc(collection(db, "historiales"), userUID + "_" + data.date.replace(/\//g, "-"));
-        await setDoc(histRef, { ...data, uid: userUID });
-    }
+    window.delFood = async (id) => { if(confirm('¿Borrar alimento?')) await deleteDoc(doc(db, "alimentos", id)); };
+    window.resetDay = async () => { if(confirm('¿Reiniciar puntos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
+    async function archiveDay(data) { await setDoc(doc(collection(db, "historiales"), userUID + "_" + data.date.replace(/\//g, "-")), { ...data, uid: userUID }); }
 
     window.tab = (v) => {
         document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active'));
         document.getElementById('v-'+v).classList.add('active');
-        const labels = ['calc', 'list', 'day', 'hist'];
+        const labels = ['calc', 'list', 'day', 'buy', 'hist'];
         document.querySelectorAll('.tab')[labels.indexOf(v)].classList.add('active');
         if(v === 'hist') renderHist();
     };
-
-    async function renderHist() {
-        const q = query(collection(db, "historiales"), where("uid", "==", userUID));
-        const snap = await getDocs(q);
-        const hist = snap.docs.map(d => d.data());
-        document.getElementById('hist-list').innerHTML = hist.map(h => `<div class="item"><b>${h.date}</b><span>${h.used.toFixed(1)} pts</span></div>`).join('');
-    }
 </script>
 </body>
 </html>

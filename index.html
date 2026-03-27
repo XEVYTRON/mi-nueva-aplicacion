@@ -53,17 +53,17 @@
 <div id="auth-screen">
     <div class="card" style="width: 100%; max-width: 320px;">
         <h2 style="text-align:center; color:var(--primary);">Acceso Privado</h2>
-        <label>Email</label><input type="email" id="auth-email">
-        <label>Contraseña</label><input type="password" id="auth-pass">
-        <button class="btn btn-save" onclick="login()">Entrar</button>
-        <button class="btn" style="background:#eee; font-size:0.8rem;" onclick="signup()">Crear Cuenta Nueva</button>
+        <label>Email</label><input type="email" id="auth-email" placeholder="tu@email.com">
+        <label>Contraseña</label><input type="password" id="auth-pass" placeholder="******">
+        <button class="btn btn-save" onclick="handleLogin()">Entrar</button>
+        <button class="btn" style="background:#eee; font-size:0.8rem;" onclick="handleSignup()">Crear Cuenta Nueva</button>
     </div>
 </div>
 
 <div id="app-content">
     <header>
         <span>Mis Puntos Pro</span>
-        <button onclick="logout()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
+        <button onclick="handleLogout()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
@@ -73,80 +73,4 @@
             <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="doCalc()">
             <label>Gramos Porción</label><input type="number" id="c-gram" oninput="doCalc()">
             <div class="res-container">
-                <span id="res-extra" style="font-size: 0.7rem; color: #666;">Extra: 0.000</span><br>
-                <span class="res-val" id="res-pts">0</span>
-                <span style="font-weight: bold; color: var(--primary)">PUNTOS</span>
-            </div>
-            <input type="hidden" id="edit-id">
-            <button class="btn btn-save" onclick="save()">💾 Guardar en mi lista de alimentos</button>
-        </div>
-    </div>
-
-    <div id="v-list" class="view">
-        <div class="card">
-            <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="renderList()">
-            <div id="food-list">Cargando alimentos...</div>
-        </div>
-    </div>
-
-    <div id="v-day" class="view">
-        <div class="card" style="text-align:center;">
-            <label style="color:var(--primary)">PUNTOS RESTANTES</label>
-            <span class="res-val" id="d-rem">22</span>
-            <p>Gastado: <b id="d-used" style="color:var(--primary)">0</b> de 22 pts</p>
-        </div>
-        <div class="card">
-            <label>RESUMEN DE HOY:</label>
-            <div id="day-log"></div>
-            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" onclick="resetDay()">Borrar todo el día</button>
-        </div>
-    </div>
-
-    <div id="v-buy" class="view">
-        <div class="card">
-            <label>Añadir a la lista</label>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="buy-input" placeholder="Escribir producto..." style="margin:0;">
-                <button class="btn-add" onclick="addBuyItem()" style="padding:0 20px; font-size:1.5rem;">+</button>
-            </div>
-            <label style="margin-top:10px;">O elegir de mis alimentos:</label>
-            <select id="buy-select" onchange="document.getElementById('buy-input').value = this.value">
-                <option value="">-- Seleccionar --</option>
-            </select>
-        </div>
-        <div class="card">
-            <label>🛒 PENDIENTE (Toca para comprar)</label>
-            <div id="buy-list-pending"></div>
-            <label style="margin-top:20px;">✅ COMPRADO (Toca para devolver)</label>
-            <div id="buy-list-done"></div>
-        </div>
-    </div>
-
-    <div id="v-hist" class="view">
-        <div class="card">
-            <label>HISTORIAL POR DÍAS</label>
-            <div id="hist-list"></div>
-        </div>
-    </div>
-
-    <nav class="tab-bar">
-        <div class="tab active" onclick="tab('calc')"><span>🧮</span>Calc</div>
-        <div class="tab" onclick="tab('list')"><span>📖</span>Lista</div>
-        <div class="tab" onclick="tab('day')"><span>🍴</span>Hoy</div>
-        <div class="tab" onclick="tab('buy')"><span>🛒</span>Compra</div>
-        <div class="tab" onclick="tab('hist')"><span>📈</span>Hist</div>
-    </nav>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAwv0RBFiAk-frLYK0LDyCyRduL2IVqOME",
-      authDomain: "mispuntos-ea353.firebaseapp.com",
-      projectId: "mispuntos-ea353",
-      storageBucket: "mispuntos-ea353.firebasestorage.app",
-      messagingSenderId: "762879678681",
-      appId: "1:7
+                <span id="res-extra" style="font-size: 0.7rem

@@ -44,8 +44,13 @@
         <h2 style="text-align:center; color:var(--primary);">Acceso Privado</h2>
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Contraseña">
+        
         <button class="btn btn-save" id="btnLogin">Entrar</button>
         <button class="btn" id="btnSignup" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
+
+        <div style="text-align:center; margin-top:25px;">
+            <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿No funciona? Limpiar App</button>
+        </div>
     </div>
 </div>
 
@@ -119,6 +124,19 @@
     </nav>
 </div>
 
+<script>
+    function limpiarApp() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let r of registrations) { r.unregister(); }
+                window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
+            });
+        } else {
+            window.location.reload(true);
+        }
+    }
+</script>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -138,7 +156,7 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    // --- CABLEADO DIRECTO DE LOS BOTONES ---
+    // --- EL CABLEADO DIRECTO (EL QUE SABEMOS QUE FUNCIONA) ---
     document.getElementById('btnLogin').addEventListener('click', async () => {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
@@ -155,9 +173,7 @@
         catch (e) { alert("Error al crear: " + e.message); }
     });
 
-    document.getElementById('btnLogout').addEventListener('click', () => {
-        signOut(auth);
-    });
+    document.getElementById('btnLogout').addEventListener('click', () => { signOut(auth); });
 
     onAuthStateChanged(auth, (user) => {
         if (user) { userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); } 
@@ -165,4 +181,118 @@
     });
 
     // --- GRAN CATÁLOGO EXTRAÍDO DEL PDF ---
-    window.import
+    window.importarLote = async () => {
+        const catalogo = [
+            { name: "Todas las frutas naturales", qty: 1, unit: "ración", pts: 0 },
+            { name: "Verduras y Hortalizas", qty: 1, unit: "ración", pts: 0 },
+            { name: "Yogur 0% natural", qty: 1, unit: "ud", pts: 0 },
+            { name: "Refresco Light/Zero", qty: 1, unit: "lata", pts: 0 },
+            { name: "Aceitunas verdes", qty: 10, unit: "ud", pts: 1 },
+            { name: "Nachos", qty: 50, unit: "g", pts: 5 },
+            { name: "Patatas chips", qty: 30, unit: "g", pts: 4 },
+            { name: "Churros", qty: 4, unit: "ud", pts: 8 },
+            { name: "Croissant o Ensaimada", qty: 1, unit: "ud", pts: 5 },
+            { name: "Galletas tipo Maria", qty: 2, unit: "ud", pts: 1 },
+            { name: "Pan de molde", qty: 1, unit: "rebanada", pts: 1.5 },
+            { name: "Pan artesano o de barra", qty: 50, unit: "g", pts: 2 },
+            { name: "Arroz (crudo)", qty: 50, unit: "g", pts: 3 },
+            { name: "Pasta (cruda)", qty: 30, unit: "g", pts: 2 },
+            { name: "Lentejas o Garbanzos (crudos)", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Patata", qty: 100, unit: "g", pts: 1 },
+            { name: "Cerveza rubia o negra", qty: 1, unit: "lata", pts: 2 },
+            { name: "Cerveza 0,0%", qty: 1, unit: "lata", pts: 1 },
+            { name: "Vino", qty: 1, unit: "copa", pts: 1.5 },
+            { name: "Pechuga de Pollo o Pavo", qty: 100, unit: "g", pts: 2 },
+            { name: "Bistec de Ternera", qty: 120, unit: "g", pts: 3 },
+            { name: "Cinta de lomo de Cerdo", qty: 100, unit: "g", pts: 2 },
+            { name: "Huevo de gallina L", qty: 1, unit: "ud", pts: 2 },
+            { name: "Jamón cocido extra", qty: 50, unit: "g", pts: 1 },
+            { name: "Jamón curado (sin grasa)", qty: 50, unit: "g", pts: 2 },
+            { name: "Chorizo curado", qty: 25, unit: "g", pts: 2.5 },
+            { name: "Salchicha Frankfurt", qty: 1, unit: "ud", pts: 3 },
+            { name: "Atún fresco", qty: 100, unit: "g", pts: 3 },
+            { name: "Merluza o Bacalao fresco", qty: 120, unit: "g", pts: 2 },
+            { name: "Salmón fresco", qty: 100, unit: "g", pts: 4 },
+            { name: "Gambas o Langostinos", qty: 250, unit: "g", pts: 2 },
+            { name: "Atún en conserva (natural)", qty: 1, unit: "lata", pts: 1 },
+            { name: "Atún en conserva (aceite)", qty: 1, unit: "lata", pts: 2.5 },
+            { name: "Leche entera", qty: 1, unit: "vaso", pts: 3 },
+            { name: "Leche semidesnatada", qty: 1, unit: "vaso", pts: 2 },
+            { name: "Yogur entero de sabores", qty: 1, unit: "ud", pts: 2 },
+            { name: "Queso Burgos", qty: 30, unit: "g", pts: 2 },
+            { name: "Queso curado o Parmesano", qty: 30, unit: "g", pts: 3 },
+            { name: "Aceite", qty: 1, unit: "ct", pts: 1 },
+            { name: "Mantequilla o Margarina", qty: 1, unit: "ct", pts: 1 },
+            { name: "Mayonesa", qty: 1, unit: "ct", pts: 1 },
+            { name: "Kétchup", qty: 2, unit: "ct", pts: 1 },
+            { name: "Tomate frito", qty: 3, unit: "cd", pts: 1 },
+            { name: "Mermelada con azúcar", qty: 1, unit: "ct", pts: 1.5 },
+            { name: "Miel", qty: 1, unit: "cd", pts: 0.5 }
+        ];
+
+        if(confirm(`¿Quieres importar el catálogo completo (${catalogo.length} alimentos) a tu lista?`)) {
+            for(let f of catalogo) {
+                await addDoc(collection(db, "alimentos"), {
+                    uid: userUID, name: f.name, isPdf: true, baseQty: f.qty, unit: f.unit, basePts: f.pts, cal: 0, fat: 0, gram: f.qty, pts: f.pts 
+                });
+            }
+            alert("¡Gran Catálogo importado correctamente!");
+        }
+    };
+
+    function iniciarApp() {
+        if (!userUID) return;
+        onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
+            foods = snap.docs.map(d => ({ id: d.id, ...d.data() })); window.renderList();
+            const sel = document.getElementById('buy-select'); sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+            foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
+        });
+        onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(data.date === new Date().toLocaleDateString()) { dayData = data; } else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(doc(db, "consumos", userUID), dayData); }
+                renderDay();
+            } else { setDoc(doc(db, "consumos", userUID), dayData); }
+        });
+        onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => { buyList = snap.docs.map(d => ({ id: d.id, ...d.data() })); window.renderBuy(); });
+    }
+
+    window.doCalc = () => {
+        const cal = parseFloat(document.getElementById('c-cal').value) || 0; const fat = parseFloat(document.getElementById('c-fat').value) || 0; const gr = parseFloat(document.getElementById('c-gram').value) || 0;
+        const extra = (cal / 50) + (fat / 12); document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3); document.getElementById('res-pts').innerText = ((extra * gr) / 100).toFixed(2);
+    };
+
+    window.saveFood = async () => {
+        const id = document.getElementById('edit-id').value;
+        const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
+        id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
+        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; window.tab('list');
+    };
+
+    window.renderList = () => {
+        const q = document.getElementById('search').value.toLowerCase();
+        const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
+        foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
+            let desc = f.isPdf ? `${f.basePts} pts por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
+            div.innerHTML += `<div class="item"><div class="info"><b>${f.name}</b><br><small style="color:#666">${desc}</small></div>
+                <div class="actions"><button class="btn-edit" onclick="window.prepEdit('${f.id}')">✏️</button><button class="btn-add" onclick="window.eat('${f.id}')">➕</button><button class="btn-del" onclick="window.delFood('${f.id}')">🗑️</button></div></div>`;
+        });
+    };
+
+    window.eat = async (id) => {
+        const f = foods.find(x => x.id === id);
+        if (f.isPdf) {
+            const input = prompt(`¿Qué cantidad de ${f.name} (${f.unit}) vas a comer?\n(Referencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
+            if (input) {
+                const consumido = parseFloat(input.replace(',', '.'));
+                if (!isNaN(consumido)) {
+                    const pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
+                    dayData.used += pts;
+                    dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
+                    await setDoc(doc(db, "consumos", userUID), dayData); window.tab('day');
+                }
+            }
+        } else {
+            const gr = prompt(`¿Cuántos gramos de ${f.name}?`, f.gram);
+            if(gr) {
+                const extra = (f.cal / 50) + (f.fat / 12); const pts =

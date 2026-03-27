@@ -48,8 +48,8 @@
         <button class="btn btn-save" onclick="window.entrar()">Entrar</button>
         <button class="btn" onclick="window.registrar()" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
 
-        <div style="text-align:center; margin-top:25px;">
-            <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿No funciona? Limpiar App</button>
+        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:20px;" id="version-check">
+            Versión 2.0
         </div>
     </div>
 </div>
@@ -124,19 +124,6 @@
     </nav>
 </div>
 
-<script>
-    function limpiarApp() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let r of registrations) { r.unregister(); }
-                window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
-            });
-        } else {
-            window.location.reload(true);
-        }
-    }
-</script>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -156,9 +143,8 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    // --- BOTONES CON CHIVATO ---
+    // --- ACCIONES DE BOTONES (AHORA SÍ FUNCIONAN) ---
     window.entrar = async () => {
-        alert("Comprobando datos...");
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
         if (!email || !pass) return alert("Escribe tu correo y contraseña.");
@@ -168,7 +154,6 @@
     };
 
     window.registrar = async () => {
-        alert("Creando cuenta en la nube...");
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
         if (!email || !pass) return alert("Escribe tu correo y contraseña.");
@@ -180,7 +165,6 @@
 
     window.salir = () => { signOut(auth); };
 
-    // --- VIGILANTE DE SESIÓN ---
     onAuthStateChanged(auth, (user) => {
         if (user) { 
             userUID = user.uid; 
@@ -280,4 +264,85 @@
         const id = document.getElementById('edit-id').value;
         const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
         id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
-        document.getElementById('
+        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; window.tab('list');
+    };
+
+    window.renderList = () => {
+        const q = document.getElementById('search').value.toLowerCase();
+        const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
+        foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
+            let desc = f.isPdf ? `${f.basePts} pts por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
+            div.innerHTML += `<div class="item"><div class="info"><b>${f.name}</b><br><small style="color:#666">${desc}</small></div>
+                <div class="actions"><button class="btn-edit" onclick="window.prepEdit('${f.id}')">✏️</button><button class="btn-add" onclick="window.eat('${f.id}')">➕</button><button class="btn-del" onclick="window.delFood('${f.id}')">🗑️</button></div></div>`;
+        });
+    };
+
+    window.eat = async (id) => {
+        const f = foods.find(x => x.id === id);
+        if (f.isPdf) {
+            const input = prompt(`¿Qué cantidad de ${f.name} (${f.unit}) vas a comer?\n(Referencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
+            if (input) {
+                const consumido = parseFloat(input.replace(',', '.'));
+                if (!isNaN(consumido)) {
+                    const pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
+                    dayData.used += pts;
+                    dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
+                    await setDoc(doc(db, "consumos", userUID), dayData); window.tab('day');
+                }
+            }
+        } else {
+            const gr = prompt(`¿Cuántos gramos de ${f.name}?`, f.gram);
+            if(gr) {
+                const extra = (f.cal / 50) + (f.fat / 12); const pts = parseFloat(((extra * gr) / 100).toFixed(2));
+                dayData.used += pts; dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: gr + 'g', originalId: f.id });
+                await setDoc(doc(db, "consumos", userUID), dayData); window.tab('day');
+            }
+        }
+    };
+
+    function renderDay() {
+        document.getElementById('d-rem').innerText = (22 - dayData.used).toFixed(1); document.getElementById('d-used').innerText = dayData.used.toFixed(1);
+        document.getElementById('day-log').innerHTML = dayData.items.map(i => `<div class="item"><div class="info"><b>${i.name}</b><br><small>${i.gr} = <b>${i.pts} pts</b></small></div><div class="actions"><button class="btn-edit" onclick="window.editDayItem(${i.id})">✏️</button><button class="btn-del" onclick="window.deleteDayItem(${i.id})">🗑️</button></div></div>`).join('');
+    }
+
+    window.editDayItem = async (timestampId) => {
+        const item = dayData.items.find(i => i.id === timestampId);
+        const f = foods.find(x => x.id === item.originalId);
+        if(!f) return alert("El alimento original fue borrado.");
+        
+        if (f.isPdf) {
+            const oldQty = item.gr.match(/[\d.]+/)[0];
+            const input = prompt(`Modificar cantidad en ${f.unit}:`, oldQty);
+            if(input) {
+                const consumido = parseFloat(input.replace(',', '.'));
+                if (!isNaN(consumido)) {
+                    const nuevosPts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
+                    dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = consumido + ' ' + f.unit; item.pts = nuevosPts;
+                    await setDoc(doc(db, "consumos", userUID), dayData);
+                }
+            }
+        } else {
+            const nuevoGr = prompt(`Modificar gramos:`, item.gr.replace('g', ''));
+            if(nuevoGr) {
+                const extra = (f.cal / 50) + (f.fat / 12); const nuevosPts = parseFloat(((extra * nuevoGr) / 100).toFixed(2));
+                dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = nuevoGr + 'g'; item.pts = nuevosPts;
+                await setDoc(doc(db, "consumos", userUID), dayData);
+            }
+        }
+    };
+
+    window.deleteDayItem = async (tid) => { const i = dayData.items.find(x => x.id === tid); dayData.used -= i.pts; dayData.items = dayData.items.filter(x => x.id !== tid); await setDoc(doc(db, "consumos", userUID), dayData); };
+    window.addBuyItem = async () => { const val = document.getElementById('buy-input').value.trim(); if(val) { await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false, date: Date.now() }); document.getElementById('buy-input').value = ''; document.getElementById('buy-select').value=''; } };
+    window.renderBuy = () => { const pen = document.getElementById('buy-list-pending'); const done = document.getElementById('buy-list-done'); pen.innerHTML = ''; done.innerHTML = ''; buyList.sort((a,b)=>b.date-a.date).forEach(i => { const h = `<div class="buy-item ${i.done?'done':''}"> <span style="flex:1" onclick="window.toggleBuy('${i.id}',${i.done})">${i.done?'✅':'▫️'} ${i.name}</span> <div><button onclick="window.editBuy('${i.id}','${i.name}')" style="background:none; border:none; color:orange;">✏️</button><button onclick="window.delBuy('${i.id}')" style="background:none; border:none; color:red; font-weight:bold;">✕</button></div></div>`; i.done ? done.innerHTML += h : pen.innerHTML += h; }); }
+    window.toggleBuy = async (id, s) => await updateDoc(doc(db, "compras", id), { done: !s });
+    window.delBuy = async (id) => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "compras", id)); };
+    window.editBuy = async (id, old) => { const n = prompt("Editar:", old); if(n) await updateDoc(doc(db, "compras", id), { name: n }); };
+    window.renderHist = async () => { const snap = await getDocs(query(collection(db, "historiales"), where("uid", "==", userUID))); document.getElementById('hist-list').innerHTML = snap.docs.map(d => d.data()).sort((a,b)=>b.date.localeCompare(a.date)).map(h => `<div class="hist-item"><div class="hist-head" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display=='block'?'none':'block')"><span>📅 ${h.date}</span><span style="color:var(--primary)">${h.used.toFixed(1)} pts</span></div><div class="hist-body">Inicio: 22.0 | Gastado: ${h.used.toFixed(1)}<hr>${h.items.map(i=>`<div>• ${i.name} (${i.gr}): <b>${i.pts}</b></div>`).join('')}</div></div>`).join(''); };
+    window.tab = (v) => { document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active')); document.getElementById('v-'+v).classList.add('active'); document.querySelectorAll('.tab').forEach(t => { if(t.innerText.toLowerCase().includes(v.substring(0,3))) t.classList.add('active'); }); if(v==='hist') window.renderHist(); };
+    window.prepEdit = (id) => { const f = foods.find(x => x.id === id); document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal||0; document.getElementById('c-fat').value = f.fat||0; document.getElementById('c-gram').value = f.gram||0; document.getElementById('edit-id').value = f.id; window.tab('calc'); };
+    window.delFood = async (id) => { if(confirm('¿Borrar alimento permanentemente?')) await deleteDoc(doc(db, "alimentos", id)); };
+    window.resetDay = async () => { if(confirm('¿Borrar todos los consumos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
+    async function archiveDay(d) { await setDoc(doc(collection(db, "historiales"), userUID + "_" + d.date.replace(/\//g, "-")), { ...d, uid: userUID }); }
+</script>
+</body>
+</html>

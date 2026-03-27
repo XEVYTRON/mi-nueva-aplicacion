@@ -9,37 +9,40 @@
     <style>
         :root { --primary: #7B1FA2; --bg: #f4f7f9; --card: #ffffff; --accent: #CE93D8; }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 80px; }
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .card { background: var(--card); margin: 12px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         label { display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px; font-weight: 600; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
         
         /* Puntos Hoy Resaltados */
         .res-container { text-align: center; background: #f3e5f5; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 2px solid var(--primary); }
-        .res-val { font-size: 3.5rem; font-weight: 900; color: var(--primary); display: block; line-height: 1; margin: 10px 0; }
+        .res-val { font-size: 4.5rem; font-weight: 900; color: var(--primary); display: block; line-height: 1; margin: 5px 0; }
         
         .btn { border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; margin-bottom: 10px; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-save { background: var(--primary); color: white; }
-        .btn-edit { background: #FF9800; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
-        .btn-add { background: #4CAF50; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
-        .btn-del { background: #F44336; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
+        .btn-edit { background: #FF9800; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; border:none; }
+        .btn-add { background: #4CAF50; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; border:none; }
+        .btn-del { background: #F44336; color: white; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; border:none; }
         
-        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; height: 65px; z-index: 100; overflow-x: auto; }
-        .tab { flex: 1; min-width: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; color: #888; cursor: pointer; }
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; height: 65px; z-index: 100; }
+        .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; color: #888; cursor: pointer; }
         .tab.active { color: var(--primary); border-top: 3px solid var(--primary); font-weight: bold; }
         
-        .view { display: none; animation: fadeIn 0.3s; }
+        .view { display: none; animation: fadeIn 0.2s; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         .item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .hist-item { border: 1px solid #eee; margin-bottom: 10px; border-radius: 8px; overflow: hidden; }
-        .hist-head { background: #f8f9fa; padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
-        .hist-body { padding: 10px; display: none; background: white; font-size: 0.85rem; }
+        .actions { display: flex; gap: 8px; align-items: center; }
+
+        /* Historial Estilo */
+        .hist-item { border: 1px solid #ddd; margin-bottom: 10px; border-radius: 10px; background: white; }
+        .hist-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .hist-body { padding: 0 15px 15px 15px; display: none; border-top: 1px solid #eee; font-size: 0.9rem; color: #555; }
         
-        .buy-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dotted #ccc; }
-        .buy-item.done span { text-decoration: line-through; color: #888; }
+        /* Lista Compra Estilo */
+        .buy-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px dotted #ccc; }
+        .buy-item.done span { text-decoration: line-through; color: #aaa; }
         
         #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; padding: 20px; }
         #app-content { display: none; }
@@ -49,7 +52,7 @@
 
 <div id="auth-screen">
     <div class="card" style="width: 100%; max-width: 320px;">
-        <h2 style="text-align:center; color:var(--primary);">Mis Puntos</h2>
+        <h2 style="text-align:center; color:var(--primary);">Acceso Privado</h2>
         <label>Email</label><input type="email" id="auth-email">
         <label>Contraseña</label><input type="password" id="auth-pass">
         <button class="btn btn-save" onclick="login()">Entrar</button>
@@ -60,17 +63,17 @@
 <div id="app-content">
     <header>
         <span>Mis Puntos Pro</span>
-        <button onclick="logout()" style="background:none; border:none; color:white; font-size:0.8rem;">Salir</button>
+        <button onclick="logout()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
         <div class="card">
-            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga">
+            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Jamón York">
             <label>Calorías (100g)</label><input type="number" id="c-cal" oninput="doCalc()">
             <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="doCalc()">
             <label>Gramos Porción</label><input type="number" id="c-gram" oninput="doCalc()">
             <div class="res-container">
-                <span id="res-extra" style="font-size: 0.7rem; color: #666;">Valor Extra: 0</span><br>
+                <span id="res-extra" style="font-size: 0.7rem; color: #666;">Extra: 0.000</span><br>
                 <span class="res-val" id="res-pts">0</span>
                 <span style="font-weight: bold; color: var(--primary)">PUNTOS</span>
             </div>
@@ -82,46 +85,46 @@
     <div id="v-list" class="view">
         <div class="card">
             <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="renderList()">
-            <div id="food-list">Cargando...</div>
+            <div id="food-list">Cargando alimentos...</div>
         </div>
     </div>
 
     <div id="v-day" class="view">
         <div class="card" style="text-align:center;">
-            <label>PUNTOS RESTANTES HOY</label>
-            <span class="res-val" id="d-rem" style="font-size: 5rem;">22</span>
-            <p>Has gastado: <b id="d-used">0</b> de 22 pts</p>
+            <label style="color:var(--primary)">PUNTOS RESTANTES</label>
+            <span class="res-val" id="d-rem">22</span>
+            <p>Gastado: <b id="d-used" style="color:var(--primary)">0</b> de 22 pts</p>
         </div>
         <div class="card">
-            <label>RESUMEN DEL DÍA:</label>
+            <label>RESUMEN DE HOY:</label>
             <div id="day-log"></div>
-            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:15px;" onclick="resetDay()">Limpiar Día</button>
+            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" onclick="resetDay()">Borrar todo el día</button>
         </div>
     </div>
 
     <div id="v-buy" class="view">
         <div class="card">
-            <label>Añadir a la compra</label>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="buy-input" placeholder="Ej: Leche o elegir de lista..." style="margin:0;">
-                <button class="btn-add" onclick="addBuyItem()" style="padding:10px 20px;">+</button>
+            <label>Añadir a la lista</label>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="buy-input" placeholder="Escribir producto..." style="margin:0;">
+                <button class="btn-add" onclick="addBuyItem()" style="padding:0 20px; font-size:1.5rem;">+</button>
             </div>
-            <select id="buy-select" onchange="document.getElementById('buy-input').value = this.value" style="width:100%; margin-top:10px; padding:8px; border-radius:8px;">
-                <option value="">-- Seleccionar de mis alimentos --</option>
+            <label style="margin-top:10px;">O elegir de mis alimentos:</label>
+            <select id="buy-select" onchange="document.getElementById('buy-input').value = this.value">
+                <option value="">-- Seleccionar --</option>
             </select>
         </div>
         <div class="card">
-            <label>🛒 PENDIENTE</label>
+            <label>🛒 PENDIENTE (Toca para comprar)</label>
             <div id="buy-list-pending"></div>
-            <hr>
-            <label>✅ COMPRADO</label>
+            <label style="margin-top:20px;">✅ COMPRADO (Toca para devolver)</label>
             <div id="buy-list-done"></div>
         </div>
     </div>
 
     <div id="v-hist" class="view">
         <div class="card">
-            <label>DÍAS ANTERIORES</label>
+            <label>HISTORIAL POR DÍAS</label>
             <div id="hist-list"></div>
         </div>
     </div>
@@ -146,216 +149,4 @@
       projectId: "mispuntos-ea353",
       storageBucket: "mispuntos-ea353.firebasestorage.app",
       messagingSenderId: "762879678681",
-      appId: "1:762879678681:web:68a2bc4677e547a57b86c8"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    let userUID = null;
-    let foods = [];
-    let buyList = [];
-    let dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            userUID = user.uid;
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            iniciarApp();
-        } else {
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('app-content').style.display = 'none';
-        }
-    });
-
-    window.login = () => signInWithEmailAndPassword(auth, document.getElementById('auth-email').value, document.getElementById('auth-pass').value).catch(e => alert("Error: " + e.message));
-    window.signup = () => createUserWithEmailAndPassword(auth, document.getElementById('auth-email').value, document.getElementById('auth-pass').value).catch(e => alert("Error: " + e.message));
-    window.logout = () => signOut(auth);
-
-    function iniciarApp() {
-        onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
-            foods = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderList();
-            updateBuySelect();
-        });
-
-        onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if(data.date === new Date().toLocaleDateString()) { dayData = data; } 
-                else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(doc(db, "consumos", userUID), dayData); }
-                renderDay();
-            } else { setDoc(doc(db, "consumos", userUID), dayData); }
-        });
-
-        onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => {
-            buyList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderBuy();
-        });
-    }
-
-    window.doCalc = () => {
-        const cal = parseFloat(document.getElementById('c-cal').value) || 0;
-        const fat = parseFloat(document.getElementById('c-fat').value) || 0;
-        const gr = parseFloat(document.getElementById('c-gram').value) || 0;
-        const extra = (cal / 50) + (fat / 12);
-        const pts = (extra * gr) / 100;
-        document.getElementById('res-extra').innerText = "Valor Extra: " + extra.toFixed(3);
-        document.getElementById('res-pts').innerText = pts.toFixed(2);
-    };
-
-    window.save = async () => {
-        const id = document.getElementById('edit-id').value;
-        const data = {
-            uid: userUID,
-            name: document.getElementById('c-name').value || 'Sin nombre',
-            cal: document.getElementById('c-cal').value || 0,
-            fat: document.getElementById('c-fat').value || 0,
-            gram: document.getElementById('c-gram').value || 0,
-            pts: document.getElementById('res-pts').innerText
-        };
-        if (id) await updateDoc(doc(db, "alimentos", id), data);
-        else await addDoc(collection(db, "alimentos"), data);
-        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = '';
-        tab('list');
-    };
-
-    window.renderList = () => {
-        const q = document.getElementById('search').value.toLowerCase();
-        const div = document.getElementById('food-list');
-        div.innerHTML = foods.length ? '' : 'No hay alimentos.';
-        foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
-            div.innerHTML += `<div class="item">
-                <div class="info"><b>${f.name}</b><br><small>${f.pts} pts (${f.gram}g)</small></div>
-                <div class="actions">
-                    <button class="btn-edit" onclick="prepEdit('${f.id}')">✏️</button>
-                    <button class="btn-add" onclick="eat('${f.id}')">➕</button>
-                    <button class="btn-del" onclick="delFood('${f.id}')">🗑️</button>
-                </div>
-            </div>`;
-        });
-    };
-
-    window.eat = async (id) => {
-        const f = foods.find(x => x.id === id);
-        const gr = prompt(`¿Gramos de ${f.name}?`, f.gram);
-        if(gr) {
-            const extra = (f.cal / 50) + (f.fat / 12);
-            const pts = parseFloat(((extra * gr) / 100).toFixed(2));
-            dayData.used += pts;
-            dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: gr, originalId: f.id });
-            await setDoc(doc(db, "consumos", userUID), dayData);
-            tab('day');
-        }
-    };
-
-    window.renderDay = () => {
-        document.getElementById('d-rem').innerText = (22 - dayData.used).toFixed(1);
-        document.getElementById('d-used').innerText = dayData.used.toFixed(1);
-        const log = document.getElementById('day-log');
-        log.innerHTML = dayData.items.map(i => `
-            <div class="item">
-                <div class="info"><b>${i.name}</b><br><small>${i.gr}g = ${i.pts} pts</small></div>
-                <div class="actions">
-                    <button class="btn-edit" onclick="editDayItem(${i.id})">✏️</button>
-                    <button class="btn-del" onclick="deleteDayItem(${i.id})">🗑️</button>
-                </div>
-            </div>`).join('');
-    };
-
-    // COMPRA LOGICA
-    window.addBuyItem = async () => {
-        const val = document.getElementById('buy-input').value;
-        if(!val) return;
-        await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false });
-        document.getElementById('buy-input').value = '';
-    };
-
-    window.renderBuy = () => {
-        const pen = document.getElementById('buy-list-pending');
-        const done = document.getElementById('buy-list-done');
-        pen.innerHTML = ''; done.innerHTML = '';
-        buyList.forEach(i => {
-            const html = `<div class="buy-item ${i.done ? 'done' : ''}">
-                <input type="checkbox" ${i.done ? 'checked' : ''} onclick="toggleBuy('${i.id}', ${i.done})">
-                <span style="flex:1" onclick="editBuy('${i.id}', '${i.name}')">${i.name}</span>
-                <button onclick="delBuy('${i.id}')" style="background:none; border:none; color:red;">✕</button>
-            </div>`;
-            if(i.done) done.innerHTML += html;
-            else pen.innerHTML += html;
-        });
-    };
-
-    window.toggleBuy = async (id, current) => await updateDoc(doc(db, "compras", id), { done: !current });
-    window.delBuy = async (id) => await deleteDoc(doc(db, "compras", id));
-    window.editBuy = async (id, old) => {
-        const n = prompt("Editar producto:", old);
-        if(n) await updateDoc(doc(db, "compras", id), { name: n });
-    };
-    function updateBuySelect() {
-        const sel = document.getElementById('buy-select');
-        sel.innerHTML = '<option value="">-- Seleccionar de mis alimentos --</option>';
-        foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
-    }
-
-    // HISTORIAL MEJORADO
-    async function renderHist() {
-        const q = query(collection(db, "historiales"), where("uid", "==", userUID));
-        const snap = await getDocs(q);
-        const hist = snap.docs.map(d => d.data()).sort((a,b) => b.date.localeCompare(a.date));
-        const container = document.getElementById('hist-list');
-        container.innerHTML = hist.map(h => `
-            <div class="hist-item">
-                <div class="hist-head" onclick="this.nextElementSibling.style.display = (this.nextElementSibling.style.display == 'block' ? 'none' : 'block')">
-                    <span>${h.date}</span>
-                    <span style="color:var(--primary)">${h.used.toFixed(1)} pts</span>
-                </div>
-                <div class="hist-body">
-                    <p><b>Resumen:</b><br>• Comienzo: 22.0 pts<br>• Gastado: ${h.used.toFixed(1)} pts<br>• Sobrante: ${(22 - h.used).toFixed(1)} pts</p>
-                    <hr>
-                    ${h.items.map(i => `<div>• ${i.name} (${i.gr}g): ${i.pts} pts</div>`).join('')}
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // FUNCIONES AUXILIARES
-    window.editDayItem = async (timestampId) => {
-        const item = dayData.items.find(i => i.id === timestampId);
-        const nuevoGr = prompt(`Modificar gramos:`, item.gr);
-        if(nuevoGr) {
-            const f = foods.find(x => x.id === item.originalId);
-            const extra = (f.cal / 50) + (f.fat / 12);
-            const nuevosPts = parseFloat(((extra * nuevoGr) / 100).toFixed(2));
-            dayData.used = (dayData.used - item.pts) + nuevosPts;
-            item.gr = nuevoGr; item.pts = nuevosPts;
-            await setDoc(doc(db, "consumos", userUID), dayData);
-        }
-    };
-    window.deleteDayItem = async (timestampId) => {
-        const item = dayData.items.find(i => i.id === timestampId);
-        dayData.used -= item.pts;
-        dayData.items = dayData.items.filter(i => i.id !== timestampId);
-        await setDoc(doc(db, "consumos", userUID), dayData);
-    };
-    window.prepEdit = (id) => {
-        const f = foods.find(x => x.id === id);
-        document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal;
-        document.getElementById('c-fat').value = f.fat; document.getElementById('c-gram').value = f.gram;
-        document.getElementById('edit-id').value = f.id; window.doCalc(); tab('calc');
-    };
-    window.delFood = async (id) => { if(confirm('¿Borrar alimento?')) await deleteDoc(doc(db, "alimentos", id)); };
-    window.resetDay = async () => { if(confirm('¿Reiniciar puntos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
-    async function archiveDay(data) { await setDoc(doc(collection(db, "historiales"), userUID + "_" + data.date.replace(/\//g, "-")), { ...data, uid: userUID }); }
-
-    window.tab = (v) => {
-        document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active'));
-        document.getElementById('v-'+v).classList.add('active');
-        const labels = ['calc', 'list', 'day', 'buy', 'hist'];
-        document.querySelectorAll('.tab')[labels.indexOf(v)].classList.add('active');
-        if(v === 'hist') renderHist();
-    };
-</script>
-</body>
-</html>
+      appId: "1:7

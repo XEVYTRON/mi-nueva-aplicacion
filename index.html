@@ -6,8 +6,8 @@
     <title>Mis Puntos Privados</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7B1FA2">
-    <style>    
-        :root { --primary: #7B1FA2; --bg: #f4f7f9; --card: #ffffff; }
+    <style>
+       :root { --primary: #7B1FA2; --bg: #f4f7f9; --card: #ffffff; }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: #333; padding-bottom: 80px; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .card { background: var(--card); margin: 12px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
@@ -17,17 +17,17 @@
         .res-val { font-size: 2.2rem; font-weight: bold; color: var(--primary); display: block; }
         .btn { border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; margin-bottom: 10px; }
         .btn-save { background: var(--primary); color: white; }
-        .btn-edit { background: #FF9800; color: white; width: auto; padding: 8px 12px; font-size: 0.8rem; }
-        .btn-add { background: #4CAF50; color: white; width: auto; padding: 8px 12px; font-size: 0.8rem; }
-        .btn-del { background: #F44336; color: white; width: auto; padding: 8px 12px; font-size: 0.8rem; }
+        .btn-edit { background: #FF9800; color: white; width: auto; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
+        .btn-add { background: #4CAF50; color: white; width: auto; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
+        .btn-del { background: #F44336; color: white; width: auto; padding: 6px 10px; font-size: 0.8rem; border-radius: 5px; }
         .tab-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; height: 65px; z-index: 100; }
         .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; color: #888; cursor: pointer; }
         .tab.active { color: var(--primary); border-top: 3px solid var(--primary); }
         .view { display: none; padding: 5px; }
         .view.active { display: block; }
         .item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .actions { display: flex; gap: 5px; }
         .daily-circle { width: 100px; height: 100px; border: 6px solid var(--primary); border-radius: 50%; margin: 10px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        /* Auth Styles */
         #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; padding: 20px; }
         #app-content { display: none; }
     </style>
@@ -61,14 +61,14 @@
                 <span class="res-val" id="res-pts">0</span>
             </div>
             <input type="hidden" id="edit-id">
-            <button class="btn btn-save" id="btn-save" onclick="save()">💾 Guardar en mi Nube</button>
+            <button class="btn btn-save" onclick="save()">💾 Guardar en mi Nube</button>
         </div>
     </div>
 
     <div id="v-list" class="view">
         <div class="card">
-            <input type="text" id="search" placeholder="🔍 Buscar..." oninput="renderList()">
-            <div id="food-list">Cargando tus alimentos...</div>
+            <input type="text" id="search" placeholder="🔍 Buscar en mis alimentos..." oninput="renderList()">
+            <div id="food-list">Cargando...</div>
         </div>
     </div>
 
@@ -78,7 +78,11 @@
             <div class="daily-circle"><span id="d-rem">22</span></div>
             <p>Consumido: <b id="d-used">0</b> pts</p>
         </div>
-        <div class="card"><div id="day-log"></div><button class="btn" style="background:#eee; font-size:0.8rem; margin-top:10px;" onclick="resetDay()">Resetear Día</button></div>
+        <div class="card">
+            <label>LO QUE HAS COMIDO HOY:</label>
+            <div id="day-log"></div>
+            <button class="btn" style="background:#eee; font-size:0.8rem; margin-top:15px;" onclick="resetDay()">Reiniciar Día (Cero Puntos)</button>
+        </div>
     </div>
 
     <div id="v-hist" class="view"><div class="card"><div id="hist-list"></div></div></div>
@@ -112,7 +116,6 @@
     let foods = [];
     let dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    // Vigilante de sesión
     onAuthStateChanged(auth, (user) => {
         if (user) {
             userUID = user.uid;
@@ -130,22 +133,18 @@
     window.logout = () => signOut(auth);
 
     function iniciarApp() {
-        // Alimentos solo del usuario actual
-        const qFoods = query(collection(db, "alimentos"), where("uid", "==", userUID));
-        onSnapshot(qFoods, (snapshot) => {
-            foods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
+            foods = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderList();
         });
 
-        // Consumo diario solo del usuario actual
-        const dayRef = doc(db, "consumos", userUID);
-        onSnapshot(dayRef, (docSnap) => {
+        onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 if(data.date === new Date().toLocaleDateString()) { dayData = data; } 
-                else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(dayRef, dayData); }
+                else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(doc(db, "consumos", userUID), dayData); }
                 renderDay();
-            } else { setDoc(dayRef, dayData); }
+            } else { setDoc(doc(db, "consumos", userUID), dayData); }
         });
     }
 
@@ -162,11 +161,11 @@
     window.save = async () => {
         const id = document.getElementById('edit-id').value;
         const data = {
-            uid: userUID, // <--- Esto protege el alimento
+            uid: userUID,
             name: document.getElementById('c-name').value || 'Sin nombre',
-            cal: document.getElementById('c-cal').value,
-            fat: document.getElementById('c-fat').value,
-            gram: document.getElementById('c-gram').value,
+            cal: document.getElementById('c-cal').value || 0,
+            fat: document.getElementById('c-fat').value || 0,
+            gram: document.getElementById('c-gram').value || 0,
             pts: document.getElementById('res-pts').innerText
         };
         if (id) await updateDoc(doc(db, "alimentos", id), data);
@@ -178,7 +177,7 @@
     window.renderList = () => {
         const q = document.getElementById('search').value.toLowerCase();
         const div = document.getElementById('food-list');
-        div.innerHTML = foods.length ? '' : 'No hay alimentos guardados.';
+        div.innerHTML = foods.length ? '' : 'No hay alimentos.';
         foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
             div.innerHTML += `<div class="item">
                 <div class="info"><b>${f.name}</b><br><small>${f.pts} pts (${f.gram}g)</small></div>
@@ -193,11 +192,12 @@
 
     window.eat = async (id) => {
         const f = foods.find(x => x.id === id);
-        const gr = prompt(`¿Gramos de ${f.name}?`, f.gram);
+        const gr = prompt(`¿Cuántos gramos de ${f.name} has comido?`, f.gram);
         if(gr) {
-            const pts = parseFloat((((f.cal/50)+(f.fat/12))*gr/100).toFixed(2));
+            const extra = (f.cal / 50) + (f.fat / 12);
+            const pts = parseFloat(((extra * gr) / 100).toFixed(2));
             dayData.used += pts;
-            dayData.items.unshift({ name: f.name, pts: pts, gr: gr });
+            dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: gr, originalId: f.id });
             await setDoc(doc(db, "consumos", userUID), dayData);
             tab('day');
         }
@@ -207,7 +207,41 @@
         document.getElementById('d-rem').innerText = (22 - dayData.used).toFixed(1);
         document.getElementById('d-used').innerText = dayData.used.toFixed(1);
         const log = document.getElementById('day-log');
-        log.innerHTML = dayData.items.map(i => `<div class="item"><span>${i.name} (${i.gr}g)</span><b>${i.pts}</b></div>`).join('');
+        log.innerHTML = dayData.items.map(i => `
+            <div class="item">
+                <div class="info"><b>${i.name}</b><br><small>${i.gr}g = ${i.pts} pts</small></div>
+                <div class="actions">
+                    <button class="btn-edit" onclick="editDayItem(${i.id})">✏️</button>
+                    <button class="btn-del" onclick="deleteDayItem(${i.id})">🗑️</button>
+                </div>
+            </div>`).join('');
+    };
+
+    window.editDayItem = async (timestampId) => {
+        const item = dayData.items.find(i => i.id === timestampId);
+        const nuevoGr = prompt(`Modificar gramos para ${item.name}:`, item.gr);
+        if(nuevoGr && nuevoGr !== item.gr) {
+            const f = foods.find(x => x.id === item.originalId);
+            if(!f) { alert("No se puede recalcular: el alimento original fue borrado de la lista."); return; }
+            
+            const extra = (f.cal / 50) + (f.fat / 12);
+            const nuevosPts = parseFloat(((extra * nuevoGr) / 100).toFixed(2));
+            
+            dayData.used = (dayData.used - item.pts) + nuevosPts;
+            item.gr = nuevoGr;
+            item.pts = nuevosPts;
+            
+            await setDoc(doc(db, "consumos", userUID), dayData);
+        }
+    };
+
+    window.deleteDayItem = async (timestampId) => {
+        if(confirm("¿Eliminar este alimento del día? Se devolverán los puntos.")) {
+            const item = dayData.items.find(i => i.id === timestampId);
+            dayData.used -= item.pts;
+            dayData.items = dayData.items.filter(i => i.id !== timestampId);
+            await setDoc(doc(db, "consumos", userUID), dayData);
+        }
     };
 
     window.prepEdit = (id) => {
@@ -217,8 +251,8 @@
         document.getElementById('edit-id').value = f.id; window.doCalc(); tab('calc');
     };
 
-    window.delFood = async (id) => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "alimentos", id)); };
-    window.resetDay = async () => { if(confirm('¿Reiniciar?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
+    window.delFood = async (id) => { if(confirm('¿Borrar de tu lista permanente?')) await deleteDoc(doc(db, "alimentos", id)); };
+    window.resetDay = async () => { if(confirm('¿Reiniciar todo el día a cero?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
 
     async function archiveDay(data) {
         const histRef = doc(collection(db, "historiales"), userUID + "_" + data.date.replace(/\//g, "-"));

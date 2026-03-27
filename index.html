@@ -45,8 +45,8 @@
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Contraseña">
         
-        <button class="btn btn-save" id="btnLogin">Entrar</button>
-        <button class="btn" id="btnSignup" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
+        <button class="btn btn-save" onclick="window.entrar()">Entrar</button>
+        <button class="btn" onclick="window.registrar()" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
 
         <div style="text-align:center; margin-top:25px;">
             <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿No funciona? Limpiar App</button>
@@ -57,7 +57,7 @@
 <div id="app-content">
     <header>
         <span>Mis Puntos Pro</span>
-        <button id="btnLogout" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
+        <button onclick="window.salir()" style="background:none; border:none; color:white; font-size:0.8rem; text-decoration: underline;">Salir</button>
     </header>
 
     <div id="v-calc" class="view active">
@@ -156,28 +156,42 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    // --- EL CABLEADO DIRECTO (EL QUE SABEMOS QUE FUNCIONA) ---
-    document.getElementById('btnLogin').addEventListener('click', async () => {
+    // --- BOTONES CON CHIVATO ---
+    window.entrar = async () => {
+        alert("Comprobando datos...");
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
-        if (!email || !pass) return alert("Pon email y contraseña");
-        try { await signInWithEmailAndPassword(auth, email, pass); } 
-        catch (e) { alert("Error al entrar: " + e.message); }
-    });
+        if (!email || !pass) return alert("Escribe tu correo y contraseña.");
+        try { 
+            await signInWithEmailAndPassword(auth, email, pass); 
+        } catch (e) { alert("Fallo al entrar: " + e.message); }
+    };
 
-    document.getElementById('btnSignup').addEventListener('click', async () => {
+    window.registrar = async () => {
+        alert("Creando cuenta en la nube...");
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
-        if (!email || !pass) return alert("Pon email y contraseña");
-        try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Cuenta creada!"); } 
-        catch (e) { alert("Error al crear: " + e.message); }
-    });
+        if (!email || !pass) return alert("Escribe tu correo y contraseña.");
+        try { 
+            await createUserWithEmailAndPassword(auth, email, pass); 
+            alert("¡Cuenta creada con éxito!"); 
+        } catch (e) { alert("Fallo al registrar: " + e.message); }
+    };
 
-    document.getElementById('btnLogout').addEventListener('click', () => { signOut(auth); });
+    window.salir = () => { signOut(auth); };
 
+    // --- VIGILANTE DE SESIÓN ---
     onAuthStateChanged(auth, (user) => {
-        if (user) { userUID = user.uid; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block'; iniciarApp(); } 
-        else { userUID = null; document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-content').style.display = 'none'; }
+        if (user) { 
+            userUID = user.uid; 
+            document.getElementById('auth-screen').style.display = 'none'; 
+            document.getElementById('app-content').style.display = 'block'; 
+            iniciarApp(); 
+        } else { 
+            userUID = null; 
+            document.getElementById('auth-screen').style.display = 'flex'; 
+            document.getElementById('app-content').style.display = 'none'; 
+        }
     });
 
     // --- GRAN CATÁLOGO EXTRAÍDO DEL PDF ---
@@ -266,33 +280,4 @@
         const id = document.getElementById('edit-id').value;
         const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
         id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
-        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; window.tab('list');
-    };
-
-    window.renderList = () => {
-        const q = document.getElementById('search').value.toLowerCase();
-        const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
-        foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
-            let desc = f.isPdf ? `${f.basePts} pts por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
-            div.innerHTML += `<div class="item"><div class="info"><b>${f.name}</b><br><small style="color:#666">${desc}</small></div>
-                <div class="actions"><button class="btn-edit" onclick="window.prepEdit('${f.id}')">✏️</button><button class="btn-add" onclick="window.eat('${f.id}')">➕</button><button class="btn-del" onclick="window.delFood('${f.id}')">🗑️</button></div></div>`;
-        });
-    };
-
-    window.eat = async (id) => {
-        const f = foods.find(x => x.id === id);
-        if (f.isPdf) {
-            const input = prompt(`¿Qué cantidad de ${f.name} (${f.unit}) vas a comer?\n(Referencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
-            if (input) {
-                const consumido = parseFloat(input.replace(',', '.'));
-                if (!isNaN(consumido)) {
-                    const pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2));
-                    dayData.used += pts;
-                    dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
-                    await setDoc(doc(db, "consumos", userUID), dayData); window.tab('day');
-                }
-            }
-        } else {
-            const gr = prompt(`¿Cuántos gramos de ${f.name}?`, f.gram);
-            if(gr) {
-                const extra = (f.cal / 50) + (f.fat / 12); const pts =
+        document.getElementById('

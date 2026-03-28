@@ -48,9 +48,7 @@
         <button class="btn btn-save" id="btnLogin">Entrar</button>
         <button class="btn" id="btnSignup" style="background:#eee; margin-top:10px;">Crear Cuenta Nueva</button>
 
-        <div style="text-align:center; margin-top:25px;">
-            <button onclick="limpiarApp()" style="background:transparent; color:#888; border:1px solid #ddd; padding:8px 15px; border-radius:20px; font-size:0.75rem;">🔄 ¿Atascado? Limpiar Memoria</button>
-        </div>
+        <div style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:20px;">Versión 7.0 (Catálogo Total + Historial Fixed)</div>
     </div>
 </div>
 
@@ -62,27 +60,27 @@
 
     <div id="v-calc" class="view active">
         <div class="card">
-            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga">
-            <label>Calorías (100g)</label><input type="number" id="c-cal" oninput="window.doCalc()">
-            <label>Grasas (100g)</label><input type="number" id="c-fat" oninput="window.doCalc()">
-            <label>Gramos Porción</label><input type="number" id="c-gram" oninput="window.doCalc()">
+            <label>Nombre del Alimento</label><input type="text" id="c-name" placeholder="Ej: Pechuga casera">
+            <label>Calorías (100g)</label><input type="number" id="c-cal">
+            <label>Grasas (100g)</label><input type="number" id="c-fat">
+            <label>Gramos Porción</label><input type="number" id="c-gram">
             <div class="res-container">
                 <span id="res-extra" style="font-size: 0.7rem; color: #666;">Extra: 0.000</span><br>
                 <span class="res-val" id="res-pts">0</span>
                 <span style="font-weight: bold; color: var(--primary)">PUNTOS</span>
             </div>
             <input type="hidden" id="edit-id">
-            <button class="btn btn-save" onclick="window.saveFood()">💾 Guardar en mi lista</button>
+            <button class="btn btn-save" id="btnSaveFood">💾 Guardar en mi lista</button>
         </div>
     </div>
 
     <div id="v-list" class="view">
         <div class="card">
             <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button onclick="window.importarLote()" style="flex:1; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar Todo</button>
-                <button onclick="window.borrarTodo()" style="background:#F44336; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🗑️ Borrar Lista</button>
+                <button id="btnImportar" style="flex:1; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📥 Importar PDF</button>
+                <button id="btnBorrarTodo" style="background:#F44336; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🗑️ Borrar Lista</button>
             </div>
-            <input type="text" id="search" placeholder="🔍 Buscar alimento..." oninput="window.renderList()">
+            <input type="text" id="search" placeholder="🔍 Buscar alimento...">
             <div id="food-list">Cargando...</div>
         </div>
     </div>
@@ -96,7 +94,7 @@
         <div class="card">
             <label>RESUMEN DE HOY:</label>
             <div id="day-log"></div>
-            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" onclick="window.resetDay()">Borrar todo el día</button>
+            <button class="btn" style="background:#f3e5f5; color:var(--primary); margin-top:20px; font-size:0.8rem;" id="btnResetDay">Borrar todo el día</button>
         </div>
     </div>
 
@@ -105,10 +103,10 @@
             <label>Añadir a la lista</label>
             <div style="display:flex; gap:8px;">
                 <input type="text" id="buy-input" placeholder="Escribir producto..." style="margin:0;">
-                <button class="btn-add" onclick="window.addBuyItem()" style="padding:0 20px; font-size:1.5rem;">+</button>
+                <button class="btn-add" id="btnAddBuy" style="padding:0 20px; font-size:1.5rem;">+</button>
             </div>
             <label style="margin-top:10px;">O elegir de mis alimentos:</label>
-            <select id="buy-select" onchange="document.getElementById('buy-input').value = this.value"><option value="">-- Seleccionar --</option></select>
+            <select id="buy-select"><option value="">-- Seleccionar --</option></select>
         </div>
         <div class="card">
             <label>🛒 PENDIENTE</label><div id="buy-list-pending"></div>
@@ -119,29 +117,15 @@
     <div id="v-hist" class="view"><div class="card"><label>HISTORIAL POR DÍAS</label><div id="hist-list"></div></div></div>
 
     <nav class="tab-bar">
-        <div class="tab active" onclick="window.tab('calc')"><span>🧮</span>Calc</div>
-        <div class="tab" onclick="window.tab('list')"><span>📖</span>Lista</div>
-        <div class="tab" onclick="window.tab('day')"><span>🍴</span>Hoy</div>
-        <div class="tab" onclick="window.tab('buy')"><span>🛒</span>Compra</div>
-        <div class="tab" onclick="window.tab('hist')"><span>📈</span>Hist</div>
+        <div class="tab active" data-tab="calc"><span>🧮</span>Calc</div>
+        <div class="tab" data-tab="list"><span>📖</span>Lista</div>
+        <div class="tab" data-tab="day"><span>🍴</span>Hoy</div>
+        <div class="tab" data-tab="buy"><span>🛒</span>Compra</div>
+        <div class="tab" data-tab="hist"><span>📈</span>Hist</div>
     </nav>
 </div>
 
-<script>
-    function limpiarApp() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let r of registrations) { r.unregister(); }
-                window.location.reload(true);
-            });
-        } else {
-            window.location.reload(true);
-        }
-    }
-</script>
-
 <script type="module">
-    // IMPORTACIÓN BÁSICA QUE SÍ TE FUNCIONA
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -160,22 +144,20 @@
     const auth = getAuth(app);
     let userUID = null, foods = [], buyList = [], dayData = { used: 0, items: [], date: new Date().toLocaleDateString() };
 
-    // EVENTOS DE LOS BOTONES
+    // --- BOTONES DE AUTENTICACIÓN (100% CABLEADOS) ---
     document.getElementById('btnLogin').addEventListener('click', async () => {
-        const email = document.getElementById('auth-email').value;
-        const pass = document.getElementById('auth-pass').value;
+        const email = document.getElementById('auth-email').value; const pass = document.getElementById('auth-pass').value;
         if (!email || !pass) return alert("Escribe tu correo y contraseña.");
-        try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Error: " + e.message); }
+        try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Error al entrar: " + e.message); }
     });
 
     document.getElementById('btnSignup').addEventListener('click', async () => {
-        const email = document.getElementById('auth-email').value;
-        const pass = document.getElementById('auth-pass').value;
+        const email = document.getElementById('auth-email').value; const pass = document.getElementById('auth-pass').value;
         if (!email || !pass) return alert("Escribe tu correo y contraseña.");
-        try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Cuenta creada!"); } catch (e) { alert("Error: " + e.message); }
+        try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Cuenta creada!"); } catch (e) { alert("Error al registrar: " + e.message); }
     });
 
-    document.getElementById('btnLogout').addEventListener('click', () => { signOut(auth); });
+    document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
     onAuthStateChanged(auth, (user) => {
         if (user) { 
@@ -185,35 +167,199 @@
         }
     });
 
-    // FUNCIONES APP
-    window.borrarTodo = async () => {
-        if (foods.length === 0) return alert("Tu lista ya está vacía.");
-        if (confirm(`⚠️ ¡CUIDADO!\n\nVas a borrar TODOS tus alimentos guardados (${foods.length} en total).\n¿Estás seguro?`)) {
-            try {
-                await Promise.all(foods.map(f => deleteDoc(doc(db, "alimentos", f.id))));
-                alert("🗑️ ¡Lista borrada por completo!");
-            } catch (error) { alert("Error al borrar: " + error.message); }
-        }
-    };
+    function iniciarApp() {
+        onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
+            foods = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderList();
+            const sel = document.getElementById('buy-select'); sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+            foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
+        });
 
-    window.importarLote = async () => {
+        // --- SISTEMA DE HISTORIAL ARREGLADO ---
+        onSnapshot(doc(db, "consumos", userUID), async (docSnap) => {
+            const hoyStr = new Date().toLocaleDateString();
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(data.date === hoyStr) { 
+                    dayData = data; 
+                    renderDay();
+                } else { 
+                    // ES UN DÍA NUEVO. Aseguramos que se guarda ayer antes de borrar.
+                    if (data.items && data.items.length > 0) {
+                        const nombreHistorial = userUID + "_" + data.date.replace(/\//g, "-");
+                        await setDoc(doc(db, "historiales", nombreHistorial), { ...data, uid: userUID });
+                    }
+                    // Ahora sí, ponemos el contador a cero para hoy.
+                    dayData = { date: hoyStr, used: 0, items: [] }; 
+                    await setDoc(doc(db, "consumos", userUID), dayData); 
+                    renderDay();
+                    renderHist();
+                }
+            } else { 
+                dayData = { date: hoyStr, used: 0, items: [] }; 
+                await setDoc(doc(db, "consumos", userUID), dayData); 
+                renderDay(); 
+            }
+        });
+
+        onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => { 
+            buyList = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderBuy(); 
+        });
+    }
+
+    // --- CÁLCULO ---
+    const doCalc = () => {
+        const cal = parseFloat(document.getElementById('c-cal').value) || 0; const fat = parseFloat(document.getElementById('c-fat').value) || 0; const gr = parseFloat(document.getElementById('c-gram').value) || 0;
+        const extra = (cal / 50) + (fat / 12); document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3); document.getElementById('res-pts').innerText = ((extra * gr) / 100).toFixed(2);
+    };
+    document.getElementById('c-cal').addEventListener('input', doCalc);
+    document.getElementById('c-fat').addEventListener('input', doCalc);
+    document.getElementById('c-gram').addEventListener('input', doCalc);
+
+    document.getElementById('btnSaveFood').addEventListener('click', async () => {
+        const id = document.getElementById('edit-id').value;
+        const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
+        id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
+        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; tab('list');
+    });
+
+    // --- RENDER DE LISTA ---
+    function renderList() {
+        const q = document.getElementById('search').value.toLowerCase();
+        const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
+        foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
+            let desc = f.isPdf ? `<span style="color:var(--primary); font-weight:bold;">${f.basePts} pts</span> por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
+            div.innerHTML += `<div class="item"><div class="info"><b>${f.name}</b><br><small style="color:#666">${desc}</small></div>
+                <div class="actions"><button class="btn-edit" data-edit="${f.id}">✏️</button><button class="btn-add" data-eat="${f.id}">➕</button><button class="btn-del" data-del="${f.id}">🗑️</button></div></div>`;
+        });
+        
+        document.querySelectorAll('button[data-eat]').forEach(btn => btn.onclick = () => eat(btn.getAttribute('data-eat')));
+        document.querySelectorAll('button[data-edit]').forEach(btn => btn.onclick = () => prepEdit(btn.getAttribute('data-edit')));
+        document.querySelectorAll('button[data-del]').forEach(btn => btn.onclick = async () => { if(confirm('¿Borrar alimento?')) await deleteDoc(doc(db, "alimentos", btn.getAttribute('data-del'))); });
+    }
+    document.getElementById('search').addEventListener('input', renderList);
+
+    function prepEdit(id) {
+        const f = foods.find(x => x.id === id);
+        document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal||0; document.getElementById('c-fat').value = f.fat||0; document.getElementById('c-gram').value = f.gram||0; document.getElementById('edit-id').value = f.id; 
+        doCalc(); tab('calc');
+    }
+
+    async function eat(id) {
+        const f = foods.find(x => x.id === id); if(!f) return;
+        if (f.isPdf) {
+            const input = prompt(`¿Cantidad de ${f.name} (${f.unit}) vas a comer?\n(Referencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
+            if (input) {
+                const consumido = parseFloat(input.replace(',', '.'));
+                if (!isNaN(consumido)) {
+                    let pts = 0; if (f.basePts > 0) { pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2)); }
+                    dayData.used += pts; dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
+                    await setDoc(doc(db, "consumos", userUID), dayData); tab('day');
+                }
+            }
+        } else {
+            const gr = prompt(`¿Cuántos gramos de ${f.name}?`, f.gram);
+            if(gr) {
+                const extra = (f.cal / 50) + (f.fat / 12); const pts = parseFloat(((extra * gr) / 100).toFixed(2));
+                dayData.used += pts; dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: gr + 'g', originalId: f.id });
+                await setDoc(doc(db, "consumos", userUID), dayData); tab('day');
+            }
+        }
+    }
+
+    function renderDay() {
+        document.getElementById('d-rem').innerText = (22 - dayData.used).toFixed(1); document.getElementById('d-used').innerText = dayData.used.toFixed(1);
+        document.getElementById('day-log').innerHTML = dayData.items.map(i => `<div class="item"><div class="info"><b>${i.name}</b><br><small>${i.gr} = <b>${i.pts} pts</b></small></div><div class="actions"><button class="btn-edit" data-editday="${i.id}">✏️</button><button class="btn-del" data-delday="${i.id}">🗑️</button></div></div>`).join('');
+        document.querySelectorAll('button[data-delday]').forEach(btn => btn.onclick = () => deleteDayItem(parseInt(btn.getAttribute('data-delday'))));
+        document.querySelectorAll('button[data-editday]').forEach(btn => btn.onclick = () => editDayItem(parseInt(btn.getAttribute('data-editday'))));
+    }
+
+    async function editDayItem(timestampId) {
+        const item = dayData.items.find(i => i.id === timestampId); const f = foods.find(x => x.id === item.originalId);
+        if(!f) return alert("El alimento original fue borrado de tu lista.");
+        if (f.isPdf) {
+            const oldQty = item.gr.match(/[\d.]+/)[0]; const input = prompt(`Modificar cantidad en ${f.unit}:`, oldQty);
+            if(input) {
+                const consumido = parseFloat(input.replace(',', '.'));
+                if (!isNaN(consumido)) {
+                    let nuevosPts = 0; if(f.basePts > 0) { nuevosPts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2)); }
+                    dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = consumido + ' ' + f.unit; item.pts = nuevosPts; await setDoc(doc(db, "consumos", userUID), dayData);
+                }
+            }
+        } else {
+            const nuevoGr = prompt(`Modificar gramos:`, item.gr.replace('g', ''));
+            if(nuevoGr) {
+                const extra = (f.cal / 50) + (f.fat / 12); const nuevosPts = parseFloat(((extra * nuevoGr) / 100).toFixed(2));
+                dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = nuevoGr + 'g'; item.pts = nuevosPts; await setDoc(doc(db, "consumos", userUID), dayData);
+            }
+        }
+    }
+
+    async function deleteDayItem(tid) { const i = dayData.items.find(x => x.id === tid); dayData.used -= i.pts; dayData.items = dayData.items.filter(x => x.id !== tid); await setDoc(doc(db, "consumos", userUID), dayData); }
+    
+    document.getElementById('btnResetDay').addEventListener('click', async () => {
+        if(confirm('¿Borrar todos los consumos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); }
+    });
+
+    document.getElementById('btnBorrarTodo').addEventListener('click', async () => {
+        if (foods.length === 0) return alert("Tu lista ya está vacía.");
+        if (confirm(`⚠️ ¡CUIDADO!\n\nVas a borrar TODOS tus alimentos guardados (${foods.length}).\n¿Estás seguro?`)) {
+            try { await Promise.all(foods.map(f => deleteDoc(doc(db, "alimentos", f.id)))); alert("🗑️ Lista borrada."); } 
+            catch (e) { alert("Error al borrar: " + e.message); }
+        }
+    });
+
+    // COMPRAS
+    document.getElementById('btnAddBuy').addEventListener('click', async () => {
+        const val = document.getElementById('buy-input').value.trim(); 
+        if(val) { await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false, date: Date.now() }); document.getElementById('buy-input').value = ''; document.getElementById('buy-select').value=''; }
+    });
+    document.getElementById('buy-select').addEventListener('change', (e) => document.getElementById('buy-input').value = e.target.value);
+    
+    function renderBuy() { 
+        const pen = document.getElementById('buy-list-pending'); const done = document.getElementById('buy-list-done'); pen.innerHTML = ''; done.innerHTML = ''; 
+        buyList.sort((a,b)=>b.date-a.date).forEach(i => { 
+            const h = `<div class="buy-item ${i.done?'done':''}"> <span style="flex:1" data-tgbuy="${i.id}" data-st="${i.done}">${i.done?'✅':'▫️'} ${i.name}</span> <div><button class="btn-edit" data-editbuy="${i.id}" data-name="${i.name}">✏️</button> <button class="btn-del" data-delbuy="${i.id}">✕</button></div></div>`; 
+            i.done ? done.innerHTML += h : pen.innerHTML += h; 
+        }); 
+        document.querySelectorAll('span[data-tgbuy]').forEach(s => s.onclick = async () => await updateDoc(doc(db, "compras", s.getAttribute('data-tgbuy')), { done: s.getAttribute('data-st') === 'false' }));
+        document.querySelectorAll('button[data-delbuy]').forEach(b => b.onclick = async () => { if(confirm('¿Borrar?')) await deleteDoc(doc(db, "compras", b.getAttribute('data-delbuy'))); });
+        document.querySelectorAll('button[data-editbuy]').forEach(b => b.onclick = async () => { const n = prompt("Editar:", b.getAttribute('data-name')); if(n) await updateDoc(doc(db, "compras", b.getAttribute('data-editbuy')), { name: n }); });
+    }
+
+    async function renderHist() {
+        const snap = await getDocs(query(collection(db, "historiales"), where("uid", "==", userUID)));
+        document.getElementById('hist-list').innerHTML = snap.docs.map(d => d.data()).sort((a,b)=>b.date.localeCompare(a.date)).map(h => `<div class="hist-item"><div class="hist-head" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display=='block'?'none':'block')"><span>📅 ${h.date}</span><span style="color:var(--primary)">${h.used.toFixed(1)} pts</span></div><div class="hist-body">Inicio: 22.0 | Gastado: ${h.used.toFixed(1)}<hr>${h.items.map(i=>`<div>• ${i.name} (${i.gr}): <b>${i.pts}</b></div>`).join('')}</div></div>`).join('');
+    }
+
+    function tab(v) { 
+        document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active')); 
+        document.getElementById('v-'+v).classList.add('active'); 
+        document.querySelector(`.tab[data-tab="${v}"]`).classList.add('active'); 
+        if(v === 'hist') renderHist();
+    }
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => tab(t.getAttribute('data-tab'))));
+
+    // --- GRAN CATÁLOGO DEL PDF COMPLETO (+280 ALIMENTOS) ---
+    document.getElementById('btnImportar').addEventListener('click', async () => {
         const catalogo = [
-            { name: "Verduras, Hortalizas y Algas", qty: 1, unit: "ración", pts: 0 },
-            { name: "Frutas naturales (Manzana, Pera, Plátano...)", qty: 1, unit: "ud", pts: 0 },
+            { name: "Verduras, Hortalizas, Algas y Champiñones", qty: 1, unit: "ración", pts: 0 },
+            { name: "Frutas naturales (Manzana, Pera, Plátano...)", qty: 1, unit: "ración", pts: 0 },
             { name: "Clara de huevo", qty: 1, unit: "ud", pts: 0 },
-            { name: "Refresco Light/Zero, Gaseosa", qty: 1, unit: "lata", pts: 0 },
+            { name: "Gaseosa / Refresco Light o Zero", qty: 1, unit: "lata", pts: 0 },
             { name: "Yogur 0% natural (1 al día)", qty: 1, unit: "ud", pts: 0 },
-            { name: "Caldo casero desgrasado", qty: 1, unit: "ración", pts: 0 },
+            { name: "Caldo casero desgrasado / Cubito de caldo", qty: 1, unit: "ración", pts: 0 },
+            { name: "Cremas frescas de Verduras", qty: 1, unit: "ración", pts: 0 },
             { name: "Edulcorante, Sacarina, Estevia", qty: 1, unit: "ración", pts: 0 },
             { name: "Kétchup light", qty: 2, unit: "ct", pts: 0 },
             { name: "Mermelada Light", qty: 2, unit: "ct", pts: 0 },
-            { name: "Salsa de soja", qty: 1, unit: "cd", pts: 0 },
+            { name: "Salsa de soja / Mostaza", qty: 1, unit: "cd", pts: 0 },
             { name: "Tabasco / Salsa Perrys", qty: 1, unit: "cd", pts: 0 },
             { name: "Tomate natural triturado", qty: 1, unit: "cd", pts: 0 },
             { name: "Vino o alcohol para cocinar", qty: 1, unit: "ración", pts: 0 },
-            { name: "Levadura / Harina", qty: 1, unit: "ct", pts: 0 },
-            { name: "Maicena", qty: 2, unit: "ct", pts: 0 },
-            
+            { name: "Levadura / Harina (1 ct) / Maicena (2 ct)", qty: 1, unit: "ración", pts: 0 },
+            { name: "Gelatina en polvo o láminas", qty: 1, unit: "ración", pts: 0 },
+            { name: "Zumo de limón concentrado", qty: 1, unit: "cd", pts: 0 },
+
             { name: "Aceitunas negras", qty: 4, unit: "ud", pts: 1 },
             { name: "Aceitunas rellenas de anchoa", qty: 8, unit: "ud", pts: 1 },
             { name: "Aceitunas verdes", qty: 10, unit: "ud", pts: 1 },
@@ -224,6 +370,7 @@
             { name: "Palomitas con aceite y sal", qty: 10, unit: "g", pts: 1.5 },
             { name: "Palomitas dulces", qty: 10, unit: "g", pts: 2.5 },
             { name: "Patatas chips", qty: 30, unit: "g", pts: 4 },
+            
             { name: "Kétchup normal", qty: 2, unit: "ct", pts: 1 },
             { name: "Mayonesa normal", qty: 1, unit: "ct", pts: 1 },
             { name: "Mayonesa Light", qty: 1, unit: "ct", pts: 0.5 },
@@ -231,9 +378,14 @@
             { name: "Mantequilla o Margarina", qty: 5, unit: "g", pts: 1 },
             { name: "Mantequilla Light", qty: 5, unit: "g", pts: 0.5 },
             { name: "Aceite de oliva o girasol", qty: 1, unit: "ct", pts: 1 },
-            { name: "Nata líquida 35% MG", qty: 1, unit: "cd", pts: 1.5 },
+            { name: "Nata líquida montar 35% MG", qty: 1, unit: "cd", pts: 1.5 },
             { name: "Nata cocina 18% MG", qty: 1, unit: "cd", pts: 1 },
             { name: "Crema de vinagre balsámico", qty: 1, unit: "cd", pts: 1 },
+            { name: "Pan rallado", qty: 1, unit: "cd", pts: 1 },
+            { name: "Preparado para natillas", qty: 2, unit: "cd", pts: 1 },
+            { name: "Concentrado de tomate", qty: 4, unit: "cd", pts: 1 },
+            { name: "Flan en polvo azucarado", qty: 1, unit: "sobre", pts: 2.5 },
+            { name: "Harina de cualquier tipo", qty: 2, unit: "cd", pts: 1 },
 
             { name: "Aguardiente, Anís, Licor, Orujo", qty: 40, unit: "ml", pts: 2 },
             { name: "Bebidas isotónicas", qty: 1, unit: "lata", pts: 1.5 },
@@ -242,225 +394,401 @@
             { name: "Cerveza rubia o negra", qty: 1, unit: "lata", pts: 2 },
             { name: "Cerveza sin alcohol", qty: 1, unit: "lata", pts: 1.5 },
             { name: "Cerveza 0,0%", qty: 1, unit: "lata", pts: 1 },
+            { name: "Clara Cerveza con Gaseosa", qty: 1, unit: "vaso", pts: 1 },
+            { name: "Clara Cerveza con Refresco", qty: 1, unit: "vaso", pts: 3 },
             { name: "Chocolate a la taza", qty: 1, unit: "taza", pts: 3 },
-            { name: "Ron, Whisky, Ginebra", qty: 40, unit: "ml", pts: 2 },
+            { name: "Chocolate polvo sin azúcar", qty: 2, unit: "ct", pts: 1 },
+            { name: "Cointreau, Coñac", qty: 40, unit: "ml", pts: 2 },
+            { name: "Ginebra", qty: 40, unit: "ml", pts: 1.5 },
+            { name: "Ron, Whisky", qty: 40, unit: "ml", pts: 2 },
             { name: "Horchata", qty: 200, unit: "ml", pts: 3 },
+            { name: "Limonada / Néctar de frutas", qty: 200, unit: "ml", pts: 3 },
+            { name: "Mosto", qty: 200, unit: "ml", pts: 3 },
+            { name: "Sangría / Tinto de Verano", qty: 1, unit: "vaso", pts: 3 },
+            { name: "Tinto de verano con limón", qty: 200, unit: "ml", pts: 1 },
+            { name: "Sidra", qty: 1, unit: "vaso", pts: 1 },
+            { name: "Vermut", qty: 60, unit: "ml", pts: 3 },
+            { name: "Vino blanco/rosado/tinto", qty: 1, unit: "copa", pts: 1.5 },
+            { name: "Vino blanco dulce", qty: 1, unit: "copa", pts: 2 },
+            { name: "Vodka", qty: 40, unit: "ml", pts: 1.5 },
             { name: "Refresco normal (Cola, Naranja)", qty: 1, unit: "lata", pts: 3 },
+            { name: "Tónica", qty: 1, unit: "lata", pts: 2 },
             { name: "Zumo de frutas envasado", qty: 200, unit: "ml", pts: 1.5 },
+            { name: "Bitter sin alcohol", qty: 1, unit: "lata", pts: 1.5 },
+            { name: "Cacao en polvo", qty: 1, unit: "ct", pts: 1 },
+            { name: "Cereales solubles", qty: 1, unit: "cd", pts: 1 },
 
             { name: "Barrita de cereales", qty: 1, unit: "ud", pts: 3 },
             { name: "Berlina o donut de azúcar", qty: 1, unit: "ud", pts: 4.5 },
             { name: "Berlina o donut de chocolate", qty: 1, unit: "ud", pts: 8 },
             { name: "Bizcocho clásico, Brioche", qty: 50, unit: "g", pts: 3.5 },
+            { name: "Buñuelos", qty: 1, unit: "ud", pts: 2.5 },
+            { name: "Caña cabello de ángel", qty: 1, unit: "ud", pts: 7 },
+            { name: "Caña crema", qty: 1, unit: "ud", pts: 8 },
             { name: "Churros", qty: 4, unit: "ud", pts: 8 },
+            { name: "Crepé con chocolate", qty: 1, unit: "ud", pts: 4 },
             { name: "Croissant, Ensaimada, Gofre", qty: 1, unit: "ud", pts: 5 },
+            { name: "Donettes", qty: 1, unit: "ud", pts: 2 },
             { name: "Galleta cookie", qty: 1, unit: "ud", pts: 3 },
+            { name: "Galletas saladas", qty: 10, unit: "g", pts: 1 },
             { name: "Galletas tipo Maria", qty: 2, unit: "ud", pts: 1 },
             { name: "Madalena o Valenciana", qty: 25, unit: "g", pts: 2 },
+            { name: "Medias noches", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Merengue", qty: 1, unit: "pq", pts: 1 },
+            { name: "Milhoja, Napolitana, Palmera", qty: 1, unit: "ud", pts: 6 },
+            { name: "Pastas de mantequilla", qty: 1, unit: "ud", pts: 2 },
+            { name: "Sobao pasiego", qty: 20, unit: "g", pts: 2.5 },
+            { name: "Tarta de manzana", qty: 120, unit: "g", pts: 7 },
+            { name: "Tarta de chocolate / queso", qty: 50, unit: "g", pts: 8 },
+            { name: "Tiramisú", qty: 50, unit: "g", pts: 6 },
+            { name: "Torta de anís clásica", qty: 40, unit: "g", pts: 1 },
             { name: "Azúcar o Fructosa polvo", qty: 15, unit: "g", pts: 1 },
+            { name: "Bombón", qty: 10, unit: "g", pts: 1.5 },
             { name: "Chocolate (>70% cacao)", qty: 15, unit: "g", pts: 1 },
             { name: "Chocolate con leche o blanco", qty: 15, unit: "g", pts: 3 },
             { name: "Crema de cacao (Nutella/Nocilla)", qty: 15, unit: "g", pts: 1.5 },
+            { name: "Dulce de leche", qty: 10, unit: "g", pts: 1 },
+            { name: "Gominolas", qty: 10, unit: "g", pts: 1 },
+            { name: "Sirope de Agave", qty: 2, unit: "ct", pts: 1 },
 
             { name: "Ala de pollo", qty: 1, unit: "ud", pts: 2 },
+            { name: "Codorniz, Perdiz", qty: 100, unit: "g", pts: 2.5 },
+            { name: "Gallina", qty: 100, unit: "g", pts: 6 },
+            { name: "Pato", qty: 120, unit: "g", pts: 5 },
+            { name: "Pechuga / Pollo sin piel", qty: 100, unit: "g", pts: 2 },
             { name: "Pavo sin piel", qty: 100, unit: "g", pts: 1.5 },
-            { name: "Pollo sin piel", qty: 100, unit: "g", pts: 2 },
-            { name: "Salchicha de Pavo/Pollo", qty: 40, unit: "g", pts: 1.5 },
+            { name: "Salchicha de Pavo", qty: 40, unit: "g", pts: 1.5 },
+            { name: "Salchicha de Pollo", qty: 30, unit: "g", pts: 2 },
+            { name: "Huevo de codorniz", qty: 1, unit: "ud", pts: 0.5 },
+            { name: "Huevo de gallina L", qty: 1, unit: "ud", pts: 2 },
             { name: "Entrecot de Buey/Ternera", qty: 120, unit: "g", pts: 5 },
+            { name: "Falda de Buey", qty: 100, unit: "g", pts: 6 },
             { name: "Solomillo Buey/Ternera", qty: 150, unit: "g", pts: 3 },
+            { name: "Bistec de Ternera", qty: 120, unit: "g", pts: 3 },
             { name: "Carne magra picada (cerdo/ternera)", qty: 100, unit: "g", pts: 2 },
-            { name: "Chuleta de aguja cerdo", qty: 1, unit: "ud", pts: 7 },
+            { name: "Callos", qty: 100, unit: "g", pts: 2 },
+            { name: "Costilla Ternera", qty: 100, unit: "g", pts: 4 },
+            { name: "Morcillo", qty: 100, unit: "g", pts: 3 },
+            { name: "Caracoles", qty: 140, unit: "g", pts: 1.5 },
+            { name: "Carne grasa de aguja", qty: 30, unit: "g", pts: 2 },
+            { name: "Cinta lomo / Solomillo Cerdo", qty: 100, unit: "g", pts: 2 },
+            { name: "Chuleta de aguja Cerdo", qty: 1, unit: "ud", pts: 7 },
+            { name: "Chuleta lomo alto Cerdo", qty: 1, unit: "ud", pts: 4 },
+            { name: "Manitas de cerdo", qty: 100, unit: "g", pts: 7.5 },
+            { name: "Morro Cerdo", qty: 50, unit: "g", pts: 7.5 },
+            { name: "Oreja Cerdo", qty: 100, unit: "g", pts: 3 },
             { name: "Costilla de cerdo", qty: 100, unit: "g", pts: 4 },
             { name: "Panceta de cerdo", qty: 50, unit: "g", pts: 9 },
+            { name: "Salchicha Cerdo", qty: 30, unit: "g", pts: 6 },
             { name: "Costilla de cordero", qty: 100, unit: "g", pts: 5 },
+            { name: "Paletilla de cordero", qty: 100, unit: "g", pts: 5 },
             { name: "Pierna de cordero", qty: 100, unit: "g", pts: 4 },
+            { name: "Corazón (Vísceras)", qty: 100, unit: "g", pts: 2.5 },
+            { name: "Hígado", qty: 100, unit: "g", pts: 3 },
+            { name: "Higaditos", qty: 100, unit: "g", pts: 3 },
+            { name: "Lengua", qty: 100, unit: "g", pts: 5 },
+            { name: "Riñones", qty: 100, unit: "g", pts: 2.5 },
+            { name: "Sesos", qty: 100, unit: "g", pts: 3 },
 
             { name: "Bacon", qty: 40, unit: "g", pts: 5 },
+            { name: "Butifarra", qty: 50, unit: "g", pts: 3.5 },
+            { name: "Cabeza de Jabalí", qty: 40, unit: "g", pts: 4 },
+            { name: "Cecina", qty: 50, unit: "g", pts: 3 },
+            { name: "Chicharrones", qty: 20, unit: "g", pts: 5 },
+            { name: "Chopped cerdo", qty: 50, unit: "g", pts: 2.5 },
+            { name: "Chopped pavo", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Chistorra", qty: 30, unit: "g", pts: 3 },
+            { name: "Chorizo fresco", qty: 35, unit: "g", pts: 2.5 },
             { name: "Chorizo curado", qty: 25, unit: "g", pts: 2.5 },
+            { name: "Chorizo de pamplona", qty: 30, unit: "g", pts: 3.5 },
+            { name: "Fiambre de pavo/pollo", qty: 60, unit: "g", pts: 1 },
+            { name: "Foei-gras", qty: 20, unit: "g", pts: 3 },
+            { name: "Fuet", qty: 30, unit: "g", pts: 3.5 },
             { name: "Jamón cocido extra", qty: 50, unit: "g", pts: 1 },
             { name: "Jamón curado (sin grasa)", qty: 50, unit: "g", pts: 2 },
             { name: "Jamón curado (con grasa)", qty: 50, unit: "g", pts: 3.5 },
+            { name: "Lacón", qty: 100, unit: "g", pts: 4 },
             { name: "Lomo embuchado", qty: 30, unit: "g", pts: 2 },
+            { name: "Morcilla", qty: 60, unit: "g", pts: 4 },
             { name: "Mortadela", qty: 50, unit: "g", pts: 3 },
+            { name: "Mortadela de aceitunas", qty: 50, unit: "g", pts: 3.5 },
             { name: "Paté de campaña/atún", qty: 20, unit: "g", pts: 2 },
+            { name: "Paté light 50%", qty: 20, unit: "g", pts: 1 },
+            { name: "Paté roquefort", qty: 20, unit: "g", pts: 2.5 },
             { name: "Salami", qty: 25, unit: "g", pts: 3 },
             { name: "Salchicha Frankfurt cerdo", qty: 35, unit: "g", pts: 3 },
+            { name: "Salchicha Frankfurt queso", qty: 35, unit: "g", pts: 3.5 },
+            { name: "Salchicha Bratwurst", qty: 1, unit: "ud", pts: 6.5 },
+            { name: "Salchichón", qty: 25, unit: "g", pts: 2 },
+            { name: "Sobrasada", qty: 20, unit: "g", pts: 3 },
 
+            { name: "Abadejo", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Ahumados (salmón, trucha...)", qty: 60, unit: "g", pts: 2.5 },
+            { name: "Almeja (sin caparazón)", qty: 250, unit: "g", pts: 1.5 },
+            { name: "Ancas de rana", qty: 150, unit: "g", pts: 1.5 },
+            { name: "Anchoas aceite / Boquerones vinagre", qty: 6, unit: "ud", pts: 1 },
             { name: "Atún fresco", qty: 100, unit: "g", pts: 3 },
             { name: "Atún en conserva (natural)", qty: 1, unit: "lata", pts: 1 },
             { name: "Atún en conserva (aceite)", qty: 1, unit: "lata", pts: 2.5 },
             { name: "Bacalao fresco", qty: 120, unit: "g", pts: 2 },
+            { name: "Bacalao en remojo", qty: 100, unit: "g", pts: 2 },
+            { name: "Bacalao seco", qty: 30, unit: "g", pts: 2.5 },
+            { name: "Berberechos (sin caparazón)", qty: 200, unit: "g", pts: 1 },
+            { name: "Besugo", qty: 120, unit: "g", pts: 3 },
+            { name: "Bogavante", qty: 120, unit: "g", pts: 2 },
+            { name: "Bonito fresco", qty: 120, unit: "g", pts: 3.5 },
+            { name: "Bonito en aceite", qty: 50, unit: "g", pts: 3 },
             { name: "Boquerón", qty: 100, unit: "g", pts: 4.5 },
+            { name: "Caballa fresca", qty: 100, unit: "g", pts: 3 },
+            { name: "Calamares lata", qty: 1, unit: "lata", pts: 2 },
             { name: "Calamares, sepia, chipirones", qty: 150, unit: "g", pts: 2 },
-            { name: "Gambas o Langostinos", qty: 250, unit: "g", pts: 2 },
+            { name: "Cangrejo", qty: 150, unit: "g", pts: 1 },
+            { name: "Caracoles de mar", qty: 200, unit: "g", pts: 2 },
+            { name: "Carpa", qty: 120, unit: "g", pts: 3 },
+            { name: "Caviar", qty: 10, unit: "g", pts: 0.5 },
+            { name: "Cazón fresco", qty: 120, unit: "g", pts: 3.5 },
+            { name: "Centollo", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Chanquete", qty: 120, unit: "g", pts: 2 },
+            { name: "Cigalas", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Congrio", qty: 100, unit: "g", pts: 2 },
+            { name: "Dorada", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Emperador", qty: 120, unit: "g", pts: 2 },
+            { name: "Gallo", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Gambas (sin caparazón)", qty: 250, unit: "g", pts: 2 },
+            { name: "Gulas", qty: 70, unit: "g", pts: 1 },
+            { name: "Huevas", qty: 20, unit: "g", pts: 2 },
+            { name: "Jurel", qty: 120, unit: "g", pts: 3 },
+            { name: "Langosta", qty: 120, unit: "g", pts: 2 },
+            { name: "Langostinos", qty: 4, unit: "ud", pts: 2.5 },
+            { name: "Lenguado", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Lubina", qty: 120, unit: "g", pts: 2.5 },
+            { name: "Lucio", qty: 120, unit: "g", pts: 2 },
             { name: "Mejillones", qty: 300, unit: "g", pts: 1 },
+            { name: "Mejillones en escabeche", qty: 1, unit: "lata", pts: 1.5 },
             { name: "Merluza fresca", qty: 120, unit: "g", pts: 2 },
-            { name: "Salmón fresco", qty: 100, unit: "g", pts: 4 },
-            { name: "Sardinas en lata (aceite)", qty: 1, unit: "lata", pts: 3 },
+            { name: "Mero", qty: 120, unit: "g", pts: 2.5 },
+            { name: "Navajas", qty: 200, unit: "g", pts: 2 },
+            { name: "Navajas lata", qty: 1, unit: "lata", pts: 1.5 },
+            { name: "Ostras", qty: 6, unit: "ud", pts: 1 },
             { name: "Palitos de cangrejo (Surimi)", qty: 70, unit: "g", pts: 1 },
+            { name: "Percebes", qty: 120, unit: "g", pts: 2 },
+            { name: "Pescadilla", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Pez espada", qty: 120, unit: "g", pts: 3 },
+            { name: "Pulpo", qty: 150, unit: "g", pts: 2 },
+            { name: "Rape", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Rodaballo", qty: 100, unit: "g", pts: 1.5 },
+            { name: "Salmón fresco", qty: 100, unit: "g", pts: 4 },
+            { name: "Salmonete", qty: 100, unit: "g", pts: 2 },
+            { name: "Sardinas en lata (aceite)", qty: 1, unit: "lata", pts: 3 },
+            { name: "Sardinas en lata (tomate)", qty: 1, unit: "lata", pts: 2 },
+            { name: "Sardina fresca", qty: 120, unit: "g", pts: 3.5 },
+            { name: "Trucha", qty: 120, unit: "g", pts: 3 },
+            { name: "Vieira", qty: 6, unit: "ud", pts: 1.5 },
+            
+            { name: "Buñuelos de bacalao", qty: 4, unit: "ud", pts: 5 },
+            { name: "Calamares rebozados", qty: 5, unit: "ud", pts: 4 },
+            { name: "Croquetas", qty: 3, unit: "ud", pts: 6 },
+            { name: "Empanadillas atún", qty: 1, unit: "ud", pts: 3 },
             { name: "Fritura de pescado rebozado", qty: 150, unit: "g", pts: 7 },
+            { name: "Rodajas pescado rebozado", qty: 70, unit: "g", pts: 4 },
+            { name: "Varitas de merluza", qty: 2, unit: "ud", pts: 4.5 },
 
+            { name: "Alubias", qty: 50, unit: "g", pts: 1.5 },
             { name: "Arroz (crudo)", qty: 50, unit: "g", pts: 3 },
+            { name: "Arroz integral", qty: 50, unit: "g", pts: 2 },
+            { name: "Batata, boniato", qty: 120, unit: "g", pts: 2 },
+            { name: "Cuscus", qty: 100, unit: "g", pts: 2 },
+            { name: "Garbanzos", qty: 50, unit: "g", pts: 2 },
+            { name: "Guisantes", qty: 100, unit: "g", pts: 1 },
+            { name: "Habas tiernas", qty: 120, unit: "g", pts: 1.5 },
+            { name: "Lentejas", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Maiz en conserva", qty: 80, unit: "g", pts: 2 },
             { name: "Pasta (cruda)", qty: 30, unit: "g", pts: 2 },
-            { name: "Garbanzos o Lentejas (crudos)", qty: 50, unit: "g", pts: 1.5 },
-            { name: "Patata", qty: 100, unit: "g", pts: 1 },
+            { name: "Pasta fresca cocida", qty: 100, unit: "g", pts: 2.5 },
+            { name: "Patata 100g", qty: 100, unit: "g", pts: 1 },
+            { name: "Patata 300g", qty: 300, unit: "g", pts: 2 },
             { name: "Patatas fritas caseras", qty: 100, unit: "g", pts: 8 },
-            { name: "Copos de Avena", qty: 25, unit: "g", pts: 2 },
-            { name: "Copos de Maíz azucarados", qty: 30, unit: "g", pts: 3 },
-            { name: "Pan de barra blanca", qty: 50, unit: "g", pts: 2.5 },
-            { name: "Pan de barra integral", qty: 50, unit: "g", pts: 1.5 },
-            { name: "Pan de molde", qty: 1, unit: "rebanada", pts: 1.5 },
-            { name: "Pan de hamburguesa", qty: 1, unit: "ud", pts: 3.5 },
-            { name: "Tortilla mejicana", qty: 1, unit: "ud", pts: 2.5 },
-            { name: "Masa para Pizza", qty: 40, unit: "g", pts: 2.5 },
+            { name: "Puré de patata (copos)", qty: 100, unit: "g", pts: 2 },
+            { name: "Quinoa", qty: 50, unit: "g", pts: 3.5 },
 
-            { name: "Leche entera", qty: 200, unit: "ml", pts: 3 },
-            { name: "Leche semidesnatada", qty: 200, unit: "ml", pts: 2 },
-            { name: "Leche desnatada", qty: 200, unit: "ml", pts: 1 },
-            { name: "Yogur entero natural", qty: 1, unit: "ud", pts: 1.5 },
-            { name: "Yogur griego", qty: 1, unit: "ud", pts: 3 },
-            { name: "Bebida Vegetal (Soja, Avena...)", qty: 200, unit: "ml", pts: 3 },
+            { name: "Aguacate", qty: 1, unit: "cuarto", pts: 1 },
+            { name: "Coco", qty: 20, unit: "g", pts: 2 },
+            { name: "Fruta en almíbar", qty: 100, unit: "g", pts: 3 },
+
+            { name: "Almendras/Anacardos/Nueces", qty: 10, unit: "g", pts: 2 },
+            { name: "Bayas de Goyi / Pasas", qty: 1, unit: "cd", pts: 1 },
+            { name: "Castañas", qty: 50, unit: "g", pts: 2 },
+            { name: "Cocktail de frutos secos", qty: 20, unit: "g", pts: 2.5 },
+            { name: "Ciruela, Dátil, Orejón", qty: 2, unit: "ud", pts: 1 },
+            { name: "Coco seco", qty: 1, unit: "cd", pts: 2 },
+            { name: "Garbanzos/Habas tostadas", qty: 25, unit: "g", pts: 2 },
+            { name: "Higo seco", qty: 1, unit: "ud", pts: 1 },
+            { name: "Maíz frito", qty: 25, unit: "g", pts: 2 },
+            { name: "Uvas Pasas pequeñas", qty: 1, unit: "cd", pts: 0.5 },
+
+            { name: "Manteca de cerdo", qty: 10, unit: "g", pts: 2.5 },
+
+            { name: "Cornete frutas", qty: 1, unit: "ud", pts: 4 },
+            { name: "Cornete chocolate", qty: 1, unit: "ud", pts: 5.5 },
+            { name: "Granizado", qty: 1, unit: "vaso", pts: 4 },
             { name: "Helado de sabores", qty: 1, unit: "bola", pts: 4 },
             { name: "Polo almendrado tipo Magnum", qty: 1, unit: "ud", pts: 7 },
-            { name: "Queso Burgos", qty: 30, unit: "g", pts: 2 },
-            { name: "Queso Curado, Manchego o Parmesano", qty: 30, unit: "g", pts: 3 },
-            { name: "Queso Edam, Gouda, Cheddar", qty: 30, unit: "g", pts: 2.5 },
-            { name: "Queso Roquefort / Cabrales", qty: 30, unit: "g", pts: 3.5 },
-            { name: "Loncha de queso tipo tranchete", qty: 1, unit: "loncha", pts: 1.5 },
-            { name: "Crema de queso para untar", qty: 2, unit: "ct", pts: 2 },
+            { name: "Polo de chocolate y nata", qty: 1, unit: "ud", pts: 8 },
+            { name: "Polo de hielo", qty: 1, unit: "ud", pts: 1 },
+            { name: "Profiteroles", qty: 1, unit: "ud", pts: 2 },
+            { name: "Sorbete", qty: 1, unit: "bola", pts: 1 },
+            { name: "Tarta helada", qty: 125, unit: "ml", pts: 5 },
+            { name: "Trufa helada", qty: 1, unit: "ud", pts: 1.5 },
 
+            { name: "Actimel", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Actimel 0%", qty: 1, unit: "ud", pts: 1 },
+            { name: "Batido de cacao", qty: 1, unit: "ud", pts: 3.5 },
+            { name: "Batido de vainilla/fresa", qty: 1, unit: "ud", pts: 2.5 },
+            { name: "Bebida Vegetal 0%", qty: 200, unit: "ml", pts: 1 },
+            { name: "Bebida Vegetal", qty: 200, unit: "ml", pts: 3 },
+            { name: "Cuajada", qty: 1, unit: "ud", pts: 2 },
+            { name: "Kéfir", qty: 100, unit: "ml", pts: 1 },
+            { name: "Leche condensada desnatada", qty: 1, unit: "ct", pts: 1 },
+            { name: "Leche desnatada", qty: 200, unit: "ml", pts: 1 },
+            { name: "Leche evaporada", qty: 1, unit: "cd", pts: 0.5 },
+            { name: "Leche entera", qty: 200, unit: "ml", pts: 3 },
+            { name: "Leche semidesnatada", qty: 200, unit: "ml", pts: 2 },
+            { name: "Petit Suisse", qty: 1, unit: "ud", pts: 2 },
+            { name: "Petit Suisse light", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Yogur 0% con frutas", qty: 1, unit: "ud", pts: 1 },
+            { name: "Yogur entero natural", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Yogur entero frutas", qty: 1, unit: "ud", pts: 2 },
+            { name: "Yogur griego", qty: 1, unit: "ud", pts: 3 },
+            { name: "Yogur griego light", qty: 1, unit: "ud", pts: 2 },
+            { name: "Yogur cabra", qty: 1, unit: "ud", pts: 3 },
+
+            { name: "Baguette", qty: 50, unit: "g", pts: 2.5 },
+            { name: "Bastones, Grisines", qty: 2, unit: "ud", pts: 1 },
+            { name: "Biscotes", qty: 1, unit: "ud", pts: 1 },
+            { name: "Pan barra blanca", qty: 50, unit: "g", pts: 2.5 },
+            { name: "Pan barra integral", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Pan centeno puro 50g", qty: 50, unit: "g", pts: 1 },
+            { name: "Pan centeno puro 30g", qty: 30, unit: "g", pts: 0 },
+            { name: "Pan espelta", qty: 50, unit: "g", pts: 1.5 },
+            { name: "Pan hamburguesa", qty: 1, unit: "ud", pts: 3.5 },
+            { name: "Pan molde", qty: 1, unit: "rebanada", pts: 1.5 },
+            { name: "Pan molde integral", qty: 1, unit: "rebanada", pts: 1 },
+            { name: "Pan rústico", qty: 1, unit: "rebanada", pts: 2 },
+            { name: "Pan perrito", qty: 1, unit: "ud", pts: 2.5 },
+            { name: "Pan proteico", qty: 2, unit: "rebanadas", pts: 1.5 },
+            { name: "Pan Thins", qty: 1, unit: "ud", pts: 2.5 },
+            { name: "Pan Thins integral", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Pan Wasa", qty: 1, unit: "ud", pts: 1 },
+            { name: "Pan Wasa integral", qty: 2, unit: "ud", pts: 2 },
+            { name: "Picatostes", qty: 5, unit: "ud", pts: 3 },
+            { name: "Tortilla mejicana pequeña", qty: 1, unit: "ud", pts: 2.5 },
+            { name: "Tortilla mejicana normal", qty: 1, unit: "ud", pts: 1 },
+            { name: "Tortita barquita", qty: 1, unit: "ud", pts: 1 },
+            { name: "Tortita avena/arroz", qty: 25, unit: "g", pts: 2 },
+            { name: "Tortita con sabores", qty: 25, unit: "g", pts: 3 },
+            
+            { name: "Crepés caseros", qty: 20, unit: "g", pts: 1 },
+            { name: "Hojaldre", qty: 30, unit: "g", pts: 3 },
+            { name: "Masa para Pizza", qty: 40, unit: "g", pts: 2.5 },
+            { name: "Obleas empanadillas pequeñas", qty: 2, unit: "ud", pts: 1 },
+            { name: "Obleas empanadillas grande", qty: 1, unit: "ud", pts: 2 },
+            { name: "Pasta brick", qty: 1, unit: "hoja", pts: 2 },
+            { name: "Pasta quebrada", qty: 30, unit: "g", pts: 3 },
+
+            { name: "Queso Arzúa", qty: 30, unit: "g", pts: 1 },
+            { name: "Queso Azul", qty: 30, unit: "g", pts: 3 },
+            { name: "Queso Brie / Camembert / Gouda", qty: 30, unit: "g", pts: 2.5 },
+            { name: "Queso Bola / Emmental / Gruyere", qty: 30, unit: "g", pts: 3 },
+            { name: "Queso Babybel", qty: 1, unit: "ud", pts: 2 },
+            { name: "Queso Burgos", qty: 30, unit: "g", pts: 2 },
+            { name: "Queso Burgos 0%", qty: 50, unit: "g", pts: 1 },
+            { name: "Queso Cabra", qty: 30, unit: "g", pts: 3 },
+            { name: "Queso Cabrales", qty: 30, unit: "g", pts: 3.5 },
+            { name: "Queso Cheddar", qty: 30, unit: "g", pts: 2.5 },
+            { name: "Crema queso untar", qty: 2, unit: "ct", pts: 2 },
+            { name: "Crema queso untar light", qty: 2, unit: "ct", pts: 1 },
+            { name: "Queso Edam curado", qty: 30, unit: "g", pts: 2.5 },
+            { name: "Queso Feta", qty: 30, unit: "g", pts: 2 },
+            { name: "Queso Havarti", qty: 30, unit: "g", pts: 3 },
+            { name: "Queso Lonchas tipo tranchete", qty: 1, unit: "loncha", pts: 1.5 },
+            { name: "Queso Lonchas light", qty: 1, unit: "loncha", pts: 1 },
+            { name: "Queso Manchego curado / Parmesano", qty: 30, unit: "g", pts: 3 },
+            { name: "Mascarpone", qty: 2, unit: "cd", pts: 5 },
+            { name: "Mozzarella", qty: 30, unit: "g", pts: 2.5 },
+            { name: "Quark desnatado", qty: 3, unit: "cd", pts: 1 },
+            { name: "Quesito", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Requesón", qty: 30, unit: "g", pts: 1 },
+            { name: "Roquefort", qty: 30, unit: "g", pts: 3.5 },
+            { name: "Torta del Casar", qty: 30, unit: "g", pts: 3 },
+
+            { name: "Arroz con leche", qty: 1, unit: "ud", pts: 3 },
+            { name: "Crema catalana", qty: 1, unit: "ud", pts: 4 },
+            { name: "Crema chocolate nata", qty: 1, unit: "ud", pts: 4.5 },
+            { name: "Flan de huevo", qty: 1, unit: "ud", pts: 3 },
+            { name: "Flan light", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Flan de vainilla", qty: 1, unit: "ud", pts: 2 },
+            { name: "Mousse de chocolate", qty: 1, unit: "ud", pts: 2.5 },
+            { name: "Mousse queso desnatado", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Mousse yogurt", qty: 1, unit: "ud", pts: 3 },
+            { name: "Natillas", qty: 1, unit: "ud", pts: 3.5 },
+            { name: "Postre Proteico", qty: 1, unit: "ud", pts: 1.5 },
+
+            { name: "Alioli", qty: 1, unit: "ct", pts: 1 },
             { name: "Guacamole", qty: 1, unit: "cd", pts: 1 },
+            { name: "Pisto", qty: 2, unit: "cd", pts: 1 },
+            { name: "Salsa al pesto", qty: 1, unit: "cd", pts: 2 },
             { name: "Salsa barbacoa", qty: 3, unit: "cd", pts: 2 },
+            { name: "Salsa bechamel", qty: 2, unit: "cd", pts: 1 },
             { name: "Salsa boloñesa", qty: 2, unit: "cd", pts: 1 },
+            { name: "Salsa brava", qty: 2, unit: "cd", pts: 1.5 },
             { name: "Salsa carbonara", qty: 1, unit: "cd", pts: 1 },
+            { name: "Salsa cocktail", qty: 1, unit: "cd", pts: 2 },
             { name: "Salsa de yogurt", qty: 1, unit: "cd", pts: 1 },
+            { name: "Salsa holandesa", qty: 1, unit: "cd", pts: 1 },
+            { name: "Salsa de queso", qty: 1, unit: "cd", pts: 2 },
+            { name: "Salsa romesco", qty: 1, unit: "cd", pts: 1 },
+            { name: "Salsa tártara", qty: 1, unit: "cd", pts: 2 },
+            { name: "Sofrito casero", qty: 3, unit: "cd", pts: 1 },
             { name: "Tomate frito", qty: 3, unit: "cd", pts: 1 },
-            { name: "Nueces, Almendras, Cacahuetes", qty: 10, unit: "g", pts: 2 },
+
+            { name: "Semillas (Amapola, Chia, Lino, Sésamo)", qty: 3, unit: "ct", pts: 1 },
+            { name: "Pipas calabaza / girasol", qty: 3, unit: "cd", pts: 1 },
+
+            { name: "Postre soja chocolate", qty: 1, unit: "ud", pts: 2.5 },
+            { name: "Postre soja frutas", qty: 1, unit: "ud", pts: 2 },
+            { name: "Salchichas vegetales", qty: 1, unit: "ud", pts: 1.5 },
+            { name: "Salvado integral trigo", qty: 15, unit: "g", pts: 0.5 },
+            { name: "Seitán", qty: 50, unit: "g", pts: 2 },
+            { name: "Soja texturizada", qty: 10, unit: "g", pts: 0.5 },
+            { name: "Tempeh", qty: 50, unit: "g", pts: 3.5 },
             { name: "Tofu", qty: 50, unit: "g", pts: 2 },
-            { name: "Hamburguesas vegetales", qty: 100, unit: "g", pts: 6 }
+            { name: "Albóndigas vegetales", qty: 100, unit: "g", pts: 2 },
+            { name: "Batido soja zumo", qty: 330, unit: "ml", pts: 3 },
+            { name: "Bebida soja cereales", qty: 200, unit: "ml", pts: 2 },
+            { name: "Bratwurts vegetales", qty: 100, unit: "g", pts: 8 },
+            { name: "Hamburguesas vegetales", qty: 100, unit: "g", pts: 6 },
+            { name: "Lecitina de soja", qty: 2, unit: "ct", pts: 2 },
+            { name: "Levadura de cerveza", qty: 1, unit: "cd", pts: 0.5 },
+            { name: "Paté vegetal", qty: 30, unit: "g", pts: 2 },
+            { name: "Polen", qty: 1, unit: "ct", pts: 0.5 },
+
+            { name: "Gazpacho envasado", qty: 250, unit: "ml", pts: 2 },
+            { name: "Salmorejo envasado", qty: 250, unit: "ml", pts: 4 },
+            { name: "Sopa de sobre", qty: 1, unit: "porción", pts: 1.5 }
         ];
 
-        if(confirm(`Se van a instalar CIENTOS de alimentos de tu libro.\n\n¿Deseas continuar?`)) {
+        if(confirm(`Se van a instalar ${catalogo.length} alimentos del libro en tu lista.\n\n¿Deseas continuar?`)) {
             try {
-                for(let f of catalogo) {
-                    await addDoc(collection(db, "alimentos"), {
+                for(let f of catalogo) { 
+                    await addDoc(collection(db, "alimentos"), { 
                         uid: userUID, name: f.name, isPdf: true, baseQty: f.qty, unit: f.unit, basePts: f.pts, cal: 0, fat: 0, gram: f.qty, pts: f.pts 
-                    });
+                    }); 
                 }
-                alert("✅ ¡Catálogo gigante guardado en tu lista!");
+                alert("✅ ¡Todo el catálogo se ha guardado en tu lista!");
             } catch(e) { alert("Error: " + e.message); }
         }
-    };
+    });
 
-    function iniciarApp() {
-        if (!userUID) return;
-        onSnapshot(query(collection(db, "alimentos"), where("uid", "==", userUID)), (snap) => {
-            foods = snap.docs.map(d => ({ id: d.id, ...d.data() })); window.renderList();
-            const sel = document.getElementById('buy-select'); sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-            foods.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
-        });
-        onSnapshot(doc(db, "consumos", userUID), (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if(data.date === new Date().toLocaleDateString()) { dayData = data; } else { archiveDay(data); dayData = { date: new Date().toLocaleDateString(), used: 0, items: [] }; setDoc(doc(db, "consumos", userUID), dayData); }
-                renderDay();
-            } else { setDoc(doc(db, "consumos", userUID), dayData); }
-        });
-        onSnapshot(query(collection(db, "compras"), where("uid", "==", userUID)), (snap) => { buyList = snap.docs.map(d => ({ id: d.id, ...d.data() })); window.renderBuy(); });
-    }
-
-    window.doCalc = () => {
-        const cal = parseFloat(document.getElementById('c-cal').value) || 0; const fat = parseFloat(document.getElementById('c-fat').value) || 0; const gr = parseFloat(document.getElementById('c-gram').value) || 0;
-        const extra = (cal / 50) + (fat / 12); document.getElementById('res-extra').innerText = "Extra: " + extra.toFixed(3); document.getElementById('res-pts').innerText = ((extra * gr) / 100).toFixed(2);
-    };
-
-    window.saveFood = async () => {
-        const id = document.getElementById('edit-id').value;
-        const data = { uid: userUID, name: document.getElementById('c-name').value || 'Sin nombre', cal: document.getElementById('c-cal').value, fat: document.getElementById('c-fat').value, gram: document.getElementById('c-gram').value, pts: document.getElementById('res-pts').innerText, isPdf: false };
-        id ? await updateDoc(doc(db, "alimentos", id), data) : await addDoc(collection(db, "alimentos"), data);
-        document.getElementById('c-name').value = ''; document.getElementById('edit-id').value = ''; window.tab('list');
-    };
-
-    window.renderList = () => {
-        const q = document.getElementById('search').value.toLowerCase();
-        const div = document.getElementById('food-list'); div.innerHTML = foods.length ? '' : 'Lista vacía.';
-        foods.filter(f => f.name.toLowerCase().includes(q)).forEach(f => {
-            let desc = f.isPdf ? `${f.basePts} pts por cada ${f.baseQty} ${f.unit}` : `${f.pts} pts (${f.gram}g)`;
-            div.innerHTML += `<div class="item"><div class="info"><b>${f.name}</b><br><small style="color:#666">${desc}</small></div>
-                <div class="actions"><button class="btn-edit" onclick="window.prepEdit('${f.id}')">✏️</button><button class="btn-add" onclick="window.eat('${f.id}')">➕</button><button class="btn-del" onclick="window.delFood('${f.id}')">🗑️</button></div></div>`;
-        });
-    };
-
-    window.eat = async (id) => {
-        const f = foods.find(x => x.id === id);
-        if (f.isPdf) {
-            const input = prompt(`¿Qué cantidad de ${f.name} (${f.unit}) vas a comer?\n(Referencia: ${f.baseQty} ${f.unit} = ${f.basePts} pts)`, f.baseQty);
-            if (input) {
-                const consumido = parseFloat(input.replace(',', '.'));
-                if (!isNaN(consumido)) {
-                    let pts = 0;
-                    if (f.basePts > 0) { pts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2)); }
-                    
-                    dayData.used += pts;
-                    dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: consumido + ' ' + f.unit, originalId: f.id });
-                    await setDoc(doc(db, "consumos", userUID), dayData); window.tab('day');
-                }
-            }
-        } else {
-            const gr = prompt(`¿Cuántos gramos de ${f.name}?`, f.gram);
-            if(gr) {
-                const extra = (f.cal / 50) + (f.fat / 12); const pts = parseFloat(((extra * gr) / 100).toFixed(2));
-                dayData.used += pts; dayData.items.unshift({ id: Date.now(), name: f.name, pts: pts, gr: gr + 'g', originalId: f.id });
-                await setDoc(doc(db, "consumos", userUID), dayData); window.tab('day');
-            }
-        }
-    };
-
-    function renderDay() {
-        document.getElementById('d-rem').innerText = (22 - dayData.used).toFixed(1); document.getElementById('d-used').innerText = dayData.used.toFixed(1);
-        document.getElementById('day-log').innerHTML = dayData.items.map(i => `<div class="item"><div class="info"><b>${i.name}</b><br><small>${i.gr} = <b>${i.pts} pts</b></small></div><div class="actions"><button class="btn-edit" onclick="window.editDayItem(${i.id})">✏️</button><button class="btn-del" onclick="window.deleteDayItem(${i.id})">🗑️</button></div></div>`).join('');
-    }
-
-    window.editDayItem = async (timestampId) => {
-        const item = dayData.items.find(i => i.id === timestampId);
-        const f = foods.find(x => x.id === item.originalId);
-        if(!f) return alert("El alimento original fue borrado de tu lista.");
-        
-        if (f.isPdf) {
-            const oldQty = item.gr.match(/[\d.]+/)[0];
-            const input = prompt(`Modificar cantidad en ${f.unit}:`, oldQty);
-            if(input) {
-                const consumido = parseFloat(input.replace(',', '.'));
-                if (!isNaN(consumido)) {
-                    let nuevosPts = 0;
-                    if(f.basePts > 0) { nuevosPts = parseFloat(((consumido * f.basePts) / f.baseQty).toFixed(2)); }
-                    
-                    dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = consumido + ' ' + f.unit; item.pts = nuevosPts;
-                    await setDoc(doc(db, "consumos", userUID), dayData);
-                }
-            }
-        } else {
-            const nuevoGr = prompt(`Modificar gramos:`, item.gr.replace('g', ''));
-            if(nuevoGr) {
-                const extra = (f.cal / 50) + (f.fat / 12); const nuevosPts = parseFloat(((extra * nuevoGr) / 100).toFixed(2));
-                dayData.used = (dayData.used - item.pts) + nuevosPts; item.gr = nuevoGr + 'g'; item.pts = nuevosPts;
-                await setDoc(doc(db, "consumos", userUID), dayData);
-            }
-        }
-    };
-
-    window.deleteDayItem = async (tid) => { const i = dayData.items.find(x => x.id === tid); dayData.used -= i.pts; dayData.items = dayData.items.filter(x => x.id !== tid); await setDoc(doc(db, "consumos", userUID), dayData); };
-    window.addBuyItem = async () => { const val = document.getElementById('buy-input').value.trim(); if(val) { await addDoc(collection(db, "compras"), { uid: userUID, name: val, done: false, date: Date.now() }); document.getElementById('buy-input').value = ''; document.getElementById('buy-select').value=''; } };
-    window.renderBuy = () => { const pen = document.getElementById('buy-list-pending'); const done = document.getElementById('buy-list-done'); pen.innerHTML = ''; done.innerHTML = ''; buyList.sort((a,b)=>b.date-a.date).forEach(i => { const h = `<div class="buy-item ${i.done?'done':''}"> <span style="flex:1" onclick="window.toggleBuy('${i.id}',${i.done})">${i.done?'✅':'▫️'} ${i.name}</span> <div><button onclick="window.editBuy('${i.id}','${i.name}')" style="background:none; border:none; color:orange;">✏️</button><button onclick="window.delBuy('${i.id}')" style="background:none; border:none; color:red; font-weight:bold;">✕</button></div></div>`; i.done ? done.innerHTML += h : pen.innerHTML += h; }); }
-    window.toggleBuy = async (id, s) => await updateDoc(doc(db, "compras", id), { done: !s });
-    window.delBuy = async (id) => { if(confirm('¿Borrar de la compra?')) await deleteDoc(doc(db, "compras", id)); };
-    window.editBuy = async (id, old) => { const n = prompt("Editar:", old); if(n) await updateDoc(doc(db, "compras", id), { name: n }); };
-    window.renderHist = async () => { const snap = await getDocs(query(collection(db, "historiales"), where("uid", "==", userUID))); document.getElementById('hist-list').innerHTML = snap.docs.map(d => d.data()).sort((a,b)=>b.date.localeCompare(a.date)).map(h => `<div class="hist-item"><div class="hist-head" onclick="this.nextElementSibling.style.display=(this.nextElementSibling.style.display=='block'?'none':'block')"><span>📅 ${h.date}</span><span style="color:var(--primary)">${h.used.toFixed(1)} pts</span></div><div class="hist-body">Inicio: 22.0 | Gastado: ${h.used.toFixed(1)}<hr>${h.items.map(i=>`<div>• ${i.name} (${i.gr}): <b>${i.pts}</b></div>`).join('')}</div></div>`).join(''); };
-    window.tab = (v) => { document.querySelectorAll('.view, .tab').forEach(x => x.classList.remove('active')); document.getElementById('v-'+v).classList.add('active'); document.querySelectorAll('.tab').forEach(t => { if(t.innerText.toLowerCase().includes(v.substring(0,3))) t.classList.add('active'); }); if(v==='hist') window.renderHist(); };
-    window.prepEdit = (id) => { const f = foods.find(x => x.id === id); document.getElementById('c-name').value = f.name; document.getElementById('c-cal').value = f.cal||0; document.getElementById('c-fat').value = f.fat||0; document.getElementById('c-gram').value = f.gram||0; document.getElementById('edit-id').value = f.id; window.tab('calc'); };
-    window.delFood = async (id) => { if(confirm('¿Borrar alimento permanentemente?')) await deleteDoc(doc(db, "alimentos", id)); };
-    window.resetDay = async () => { if(confirm('¿Borrar todos los consumos de hoy?')) { dayData.used = 0; dayData.items = []; await setDoc(doc(db, "consumos", userUID), dayData); } };
-    async function archiveDay(d) { await setDoc(doc(collection(db, "historiales"), userUID + "_" + d.date.replace(/\//g, "-")), { ...d, uid: userUID }); }
 </script>
 </body>
 </html>
